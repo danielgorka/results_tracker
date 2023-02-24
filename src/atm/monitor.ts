@@ -1,4 +1,4 @@
-import { tournamentsRepository } from "../app";
+import { logger, tournamentsRepository } from "../app";
 import { analyzeUrl } from "../tournaments/analyze";
 
 
@@ -13,7 +13,7 @@ import { analyzeUrl } from "../tournaments/analyze";
 /// - 7 days - 90 days: every 1 day (at 00:00)
 /// - 1 day - 7 days: every 1 hour
 export async function runATM(): Promise<void> {
-    console.log('ATM started');
+    logger.info('ATM started');
 
     const now = new Date();
     const tournaments = await tournamentsRepository.getTournaments();
@@ -44,15 +44,15 @@ export async function runATM(): Promise<void> {
         const available = await analyzeUrl(tournament.html_results!.url);
         //TODO
         if (available) {
-            console.log(`Tournament ${tournament.id} is available.`);
+            logger.info(`Tournament ${tournament.id} is available.`);
         } else {
-            console.log(`Tournament ${tournament.id} is not available. Should be marked as outdated.`);
+            logger.info(`Tournament ${tournament.id} is not available. Should be marked as outdated.`);
         }
     }
 }
 
 export async function forceATM(): Promise<void> {
-    console.log('Force ATM started');
+    logger.info('Force ATM started');
 
     const now = new Date();
     const tournaments = await tournamentsRepository.getTournaments();
@@ -76,9 +76,9 @@ export async function forceATM(): Promise<void> {
         const available = await analyzeUrl(tournament.html_results!.url);
         //TODO
         if (available) {
-            console.log(`Tournament ${tournament.id} is available.`);
+            logger.info(`Tournament ${tournament.id} is available.`);
         } else {
-            console.log(`Tournament ${tournament.id} is not available. Should be marked as outdated.`);
+            logger.info(`Tournament ${tournament.id} is not available. Should be marked as outdated.`);
         }
     }
 }

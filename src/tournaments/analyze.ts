@@ -1,4 +1,5 @@
 
+import { logger } from "../app";
 import { Tournament } from "./tournament";
 
 const SHIAI_REGEX = /<meta name="keywords" content="JudoShiai-[^"]+" \/>/;
@@ -19,7 +20,7 @@ export async function analyzeUrl(url: string): Promise<boolean> {
             return true;
         }
     } catch (e) {
-        console.error(e);
+        logger.info(`Failed to analyze URL ${fullUrl} - ${e}`);
     }
 
     return false;

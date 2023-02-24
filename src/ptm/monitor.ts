@@ -1,4 +1,4 @@
-import { tournamentsRepository } from "../app";
+import { logger, tournamentsRepository } from "../app";
 import { analyzeUrl } from "../tournaments/analyze";
 
 
@@ -12,7 +12,7 @@ import { analyzeUrl } from "../tournaments/analyze";
 /// - Monday - Friday: every 1 day (at 00:00)
 /// - Saturday - Sunday: every 10 minutes when 7:00 - 15:00, every 1 hour when 15:00 - 23:00
 export async function runPTM(): Promise<void> {
-    console.log('PTM started');
+    logger.info('PTM started');
 
     const now = new Date();
     const urls = require('../../config.json').urls as string[];
@@ -45,15 +45,15 @@ export async function runPTM(): Promise<void> {
         const available = await analyzeUrl(url);
         //TODO
         if (available) {
-            console.log(`URL ${url} is available. Should be added to the database.`);
+            logger.info(`URL ${url} is available. Should be added to the database.`);
         } else {
-            console.log(`URL ${url} is not available.`);
+            logger.info(`URL ${url} is not available.`);
         }
     }
 }
 
 export async function forcePTM(): Promise<void> {
-    console.log('Force PTM started');
+    logger.info('Force PTM started');
 
     const now = new Date();
     const urls = require('../../config.json').urls as string[];
@@ -73,9 +73,9 @@ export async function forcePTM(): Promise<void> {
         const available = await analyzeUrl(url);
         //TODO
         if (available) {
-            console.log(`URL ${url} is available. Should be added to the database.`);
+            logger.info(`URL ${url} is available. Should be added to the database.`);
         } else {
-            console.log(`URL ${url} is not available.`);
+            logger.info(`URL ${url} is not available.`);
         }
     }
 }

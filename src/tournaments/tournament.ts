@@ -240,35 +240,6 @@ export class Tournament {
     created_at!: IntTimestamp;
     updated_at!: IntTimestamp;
 
-    static create(): Tournament {
-        //TODO(public-console): get values from user (timezone, country, ect.)
-        return {
-            locales: ['en'],
-            timezone: 'Europe/Warsaw',
-            name: {
-                'en': 'Example Tournament',
-            },
-            state: 'private',
-            start_date: formatDate(new Date()),
-            end_date: formatDate(new Date()),
-            place: {
-                'en': 'City',
-            },
-            country: 'PL',
-            html_results: undefined,
-            realtime_results: false,
-            image_url: {
-                'en': 'https://example.com/image.png',
-            },
-            links: undefined,
-            location_url: undefined,
-            videos: undefined,
-            schedule: undefined,
-            created_at: IntTimestamp.now(),
-            updated_at: IntTimestamp.now(),
-        };
-    }
-
     static fromDocumentSnapshot(document: DocumentSnapshot): Tournament {
         const data = document.data()!;
         return {

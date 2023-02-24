@@ -1,13 +1,27 @@
 import express, { Express, Request, Response } from 'express';
 import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore  } from 'firebase-admin/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
+import * as winston from 'winston';
+import 'winston-daily-rotate-file';
 import { TournamentsRepository } from './tournaments/tournaments_repository';
 import { startMainScheduler } from './scheduler/scheduler';
 import { forcePTM } from './ptm/monitor';
 import { forceATM } from './atm/monitor';
 
 const startTime = new Date();
+export const logger = winston.createLogger({
+    level: "debug",
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.Console(),
+        new winston.transports.DailyRotateFile({
+            filename: "logs/%DATE%.log",
+            datePattern: "YYYY-MM-DD",
+        }),
+    ],
+
+});
 
 dotenv.config();
 
@@ -27,7 +41,7 @@ export const tournamentsRepository = new TournamentsRepository(firestore);
 tournamentsRepository.refeshTournaments();
 
 app.get('/', async (req: Request, res: Response) => {
-  res.json({ message: 'Server started at: ' + startTime.toISOString() });
+    res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
 
 app.post('/atm', async (req: Request, res: Response) => {
@@ -40,9 +54,8 @@ app.post('/ptm', async (req: Request, res: Response) => {
 });
 
 
-// console.log('test');
 app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
+    logger.info(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
 
 // Start main scheduler (every 1 hour)
