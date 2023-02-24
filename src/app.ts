@@ -41,6 +41,10 @@ app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
 
+app.post('/refresh', async (req: Request, res: Response) => {
+    await tournamentsRepository.refeshTournaments();
+    res.json({ message: 'Tournaments refreshed' });
+});
 app.post('/atm', async (req: Request, res: Response) => {
     await forceATM();
     res.json({ message: 'ATM started' });
