@@ -12,7 +12,10 @@ import { forceATM } from './atm/monitor';
 const startTime = new Date();
 export const logger = winston.createLogger({
     level: "debug",
-    format: winston.format.json(),
+    format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`),
+    ),
     transports: [
         new winston.transports.Console(),
         new winston.transports.DailyRotateFile({
@@ -37,10 +40,16 @@ const port = process.env.PORT;
 
 export const tournamentsRepository = new TournamentsRepository(firestore);
 
+// Refresh tournaments
+tournamentsRepository.refeshTournaments().then(() => {
+    // Start main scheduler
+    startMainScheduler();
+});
+
+
 app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
-
 app.post('/refresh', async (req: Request, res: Response) => {
     await tournamentsRepository.refeshTournaments();
     res.json({ message: 'Tournaments refreshed' });
@@ -54,16 +63,6 @@ app.post('/ptm', async (req: Request, res: Response) => {
     res.json({ message: 'PTM started' });
 });
 
-
 app.listen(port, () => {
     logger.info(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
-
-
-// Refresh tournaments
-tournamentsRepository.refeshTournaments().then(() => {
-    // Start main scheduler
-    startMainScheduler();
-});
-
-
