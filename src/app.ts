@@ -37,19 +37,16 @@ const port = process.env.PORT;
 
 export const tournamentsRepository = new TournamentsRepository(firestore);
 
-// Refresh tournaments
-tournamentsRepository.refeshTournaments();
-
 app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
 
 app.post('/atm', async (req: Request, res: Response) => {
-    forceATM();
+    await forceATM();
     res.json({ message: 'ATM started' });
 });
 app.post('/ptm', async (req: Request, res: Response) => {
-    forcePTM();
+    await forcePTM();
     res.json({ message: 'PTM started' });
 });
 
@@ -58,5 +55,11 @@ app.listen(port, () => {
     logger.info(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
 
-// Start main scheduler (every 1 hour)
-startMainScheduler();
+
+// Refresh tournaments
+tournamentsRepository.refeshTournaments().then(() => {
+    // Start main scheduler
+    startMainScheduler();
+});
+
+

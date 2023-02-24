@@ -1,5 +1,6 @@
 import { Tournament } from "./tournament";
 import * as fs from 'fs/promises';
+import { logger } from "../app";
 
 export const TOURNAMENTS_FILE = 'tmp/tournaments.json';
 export const TOURNAMENTS_COLLECTION = 'tournaments';
@@ -22,6 +23,7 @@ export class TournamentsRepository {
         };
 
         await fs.writeFile(TOURNAMENTS_FILE, JSON.stringify(tournaments, null, 2));
+        logger.info('Tournaments cache refreshed');
     }
 
     public async getTournaments(): Promise<Tournament[]> {
