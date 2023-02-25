@@ -20,7 +20,7 @@ export async function analyzeUrl(url: string): Promise<boolean> {
             return true;
         }
     } catch (e) {
-        logger.info(`Failed to analyze URL ${fullUrl} - ${e}`);
+        logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
     }
 
     return false;

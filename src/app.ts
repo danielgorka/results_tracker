@@ -8,6 +8,8 @@ import { TournamentsRepository } from './tournaments/tournaments_repository';
 import { startMainScheduler } from './scheduler/scheduler';
 import { forcePTM } from './ptm/monitor';
 import { forceATM } from './atm/monitor';
+import { YourCompetitorsRepository } from './your_competitors/your_competitors_repository';
+import { startActiveScheduler, stopActiveScheduler } from './scheduler/active_scheduler';
 
 const startTime = new Date();
 export const logger = winston.createLogger({
@@ -39,10 +41,44 @@ const app: Express = express();
 const port = process.env.PORT;
 
 export const tournamentsRepository = new TournamentsRepository(firestore);
+export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore);
 
-// Refresh tournaments
-tournamentsRepository.refeshTournaments().then(() => {
-    // Start main scheduler
+async function refreshCache(): Promise<void> {
+    await tournamentsRepository.refreshTournaments();
+
+    const tournaments = await tournamentsRepository.getTournaments();
+
+    const now = new Date();
+    const activeIds = tournaments
+        .filter(tournament => {
+            if (tournament.state != 'public') return;
+            if (tournament.html_results === undefined) return;
+
+            const start_date = new Date(tournament.start_date);
+            const end_date = new Date(tournament.end_date);
+            end_date.setDate(end_date.getDate() + 1);
+
+            return start_date < now && end_date > now;
+        })
+        .map(tournament => tournament.id!);
+
+    await yourCompetitorsRepository.refreshYourCompetitors(activeIds);
+
+    logger.info('Cache refreshed');
+
+    // Ensure that main scheduler is running
+    startMainScheduler();
+
+    // Run active scheduler if there are active tournaments or stop it otherwise
+    if (activeIds.length > 0) {
+        startActiveScheduler();
+    } else {
+        stopActiveScheduler();
+    }
+}
+
+// Initialize cache and start main scheduler
+refreshCache().then(() => {
     startMainScheduler();
 });
 
@@ -51,8 +87,8 @@ app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
 app.post('/refresh', async (req: Request, res: Response) => {
-    await tournamentsRepository.refeshTournaments();
-    res.json({ message: 'Tournaments refreshed' });
+    await refreshCache();
+    res.json({ message: 'Cache refreshed' });
 });
 app.post('/atm', async (req: Request, res: Response) => {
     await forceATM();

@@ -8,7 +8,7 @@ export const TOURNAMENTS_COLLECTION = 'tournaments';
 export class TournamentsRepository {
     constructor(private readonly db: FirebaseFirestore.Firestore) { }
 
-    public async refeshTournaments(): Promise<void> {
+    public async refreshTournaments(): Promise<void> {
         const snapshot = await this.collection()
             .where('state', '!=', 'outdated')
             .orderBy('state')
@@ -23,7 +23,7 @@ export class TournamentsRepository {
         };
 
         await fs.writeFile(TOURNAMENTS_FILE, JSON.stringify(tournaments, null, 2));
-        logger.info('Tournaments cache refreshed');
+        logger.debug('Tournaments cache refreshed');
     }
 
     public async getTournaments(): Promise<Tournament[]> {
