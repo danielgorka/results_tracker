@@ -10,6 +10,7 @@ import { forcePTM } from './ptm/monitor';
 import { forceATM } from './atm/monitor';
 import { YourCompetitorsRepository } from './your_competitors/your_competitors_repository';
 import { startActiveScheduler, stopActiveScheduler } from './scheduler/active_scheduler';
+import { NotificationsRepository } from './notifications/notifications_repository';
 
 const startTime = new Date();
 export const logger = winston.createLogger({
@@ -37,11 +38,14 @@ initializeApp({
 });
 
 const firestore = getFirestore();
+firestore.settings({ ignoreUndefinedProperties: true });
+
 const app: Express = express();
 const port = process.env.PORT;
 
 export const tournamentsRepository = new TournamentsRepository(firestore);
 export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore);
+export const notificationsRepository = new NotificationsRepository(firestore);
 
 async function refreshCache(): Promise<void> {
     await tournamentsRepository.refreshTournaments();
@@ -63,14 +67,16 @@ async function refreshCache(): Promise<void> {
         .map(tournament => tournament.id!);
 
     await yourCompetitorsRepository.refreshYourCompetitors(activeIds);
+    await notificationsRepository.refreshMatchNotifications(activeIds);
 
     logger.info('Cache refreshed');
 
     // Ensure that main scheduler is running
     startMainScheduler();
 
-    // Run active scheduler if there are active tournaments or stop it otherwise
-    if (activeIds.length > 0) {
+    const yourCompetitors = await yourCompetitorsRepository.getYourCompetitors();
+    // Run active scheduler if there are your competitors or stop it otherwise
+    if (yourCompetitors.length > 0) {
         startActiveScheduler();
     } else {
         stopActiveScheduler();

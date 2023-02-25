@@ -1,4 +1,5 @@
 import { logger } from "../app";
+import { runOTA } from "../ota/analyzer";
 
 var interval: NodeJS.Timer | undefined;
 
@@ -27,4 +28,5 @@ export function stopActiveScheduler() {
 
 function run() {
     logger.debug('Active scheduler run');
+    runOTA();
 }
