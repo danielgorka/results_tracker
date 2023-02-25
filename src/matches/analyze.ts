@@ -40,3 +40,16 @@ export async function analyzeNextMatches(url: string): Promise<Match[][] | undef
         return undefined;
     }
 }
+
+export async function getRawMatchesData(url: string): Promise<number[][] | undefined> {
+    const fullUrl = url + 'c-matches.txt';
+    
+    try {
+        const response = await fetch(fullUrl);
+        const text = await response.text();
+        return text.split('\n').map(line => line.split('\t').map(x => parseInt(x)));
+    } catch (e) {
+        logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
+        return undefined;
+    }
+}
