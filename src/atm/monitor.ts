@@ -20,6 +20,7 @@ export async function runATM(): Promise<void> {
 
     const tournamentsToAnalyze = tournaments.filter(tournament => {
         const end_date = new Date(tournament.end_date);
+        end_date.setDate(end_date.getDate() + 1);
         if (end_date.getTime() > now.getTime()) {
             // Tournament is not finished yet
             return false;
