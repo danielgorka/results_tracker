@@ -37,7 +37,6 @@ export class YourCompetitorsRepository {
         };
 
         await fs.writeFile(YOUR_COMPETITORS_FILE, JSON.stringify(yourCompetitors, null, 2));
-        logger.debug('Your competitors cache refreshed');
     }
 
     public async getYourCompetitors(): Promise<YourCompetitor[]> {

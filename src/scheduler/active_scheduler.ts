@@ -27,6 +27,5 @@ export function stopActiveScheduler() {
 
 
 function run() {
-    logger.debug('Active scheduler run');
     runOTA();
 }

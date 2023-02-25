@@ -39,7 +39,6 @@ export class NotificationsRepository {
         };
 
         await fs.writeFile(NOTIFICATIONS_FILE, JSON.stringify(notifications, null, 2));
-        logger.debug('Notifications cache refreshed');
     }
 
     public async createMatchNotifications(notifications: MatchNotification[]): Promise<void> {
@@ -95,7 +94,7 @@ export class NotificationsRepository {
         };
         await fs.writeFile(NOTIFICATIONS_FILE, JSON.stringify(notificationsData, null, 2));
 
-        logger.debug(`Sent ${list.length} notifications`);
+        logger.info(`Sent ${list.length} notifications`);
     }
 
     private async getSentMatchNotifications(): Promise<MatchNotification[]> {

@@ -5,12 +5,12 @@ import dotenv from 'dotenv';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { TournamentsRepository } from './tournaments/tournaments_repository';
-import { startMainScheduler } from './scheduler/scheduler';
 import { forcePTM } from './ptm/monitor';
 import { forceATM } from './atm/monitor';
 import { YourCompetitorsRepository } from './your_competitors/your_competitors_repository';
-import { startActiveScheduler, stopActiveScheduler } from './scheduler/active_scheduler';
 import { NotificationsRepository } from './notifications/notifications_repository';
+import { refreshTournaments, refreshCache, refreshMatchNotifications, refreshYourCompetitors } from './cache/cache';
+import { runOTA } from './ota/analyzer';
 
 const startTime = new Date();
 export const logger = winston.createLogger({
@@ -47,55 +47,31 @@ export const tournamentsRepository = new TournamentsRepository(firestore);
 export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore);
 export const notificationsRepository = new NotificationsRepository(firestore);
 
-async function refreshCache(): Promise<void> {
-    await tournamentsRepository.refreshTournaments();
-
-    const tournaments = await tournamentsRepository.getTournaments();
-
-    const now = new Date();
-    const activeIds = tournaments
-        .filter(tournament => {
-            if (tournament.state != 'public') return;
-            if (tournament.html_results === undefined) return;
-
-            const start_date = new Date(tournament.start_date);
-            const end_date = new Date(tournament.end_date);
-            end_date.setDate(end_date.getDate() + 1);
-
-            return start_date < now && end_date > now;
-        })
-        .map(tournament => tournament.id!);
-
-    await yourCompetitorsRepository.refreshYourCompetitors(activeIds);
-    await notificationsRepository.refreshMatchNotifications(activeIds);
-
-    logger.info('Cache refreshed');
-
-    // Ensure that main scheduler is running
-    startMainScheduler();
-
-    const yourCompetitors = await yourCompetitorsRepository.getYourCompetitors();
-    // Run active scheduler if there are your competitors or stop it otherwise
-    if (yourCompetitors.length > 0) {
-        startActiveScheduler();
-    } else {
-        stopActiveScheduler();
-    }
-}
-
 // Initialize cache and start main scheduler
-refreshCache().then(() => {
-    startMainScheduler();
-});
+refreshCache();
 
 
 app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
+
 app.post('/refresh', async (req: Request, res: Response) => {
     await refreshCache();
-    res.json({ message: 'Cache refreshed' });
+    res.json({ message: 'Full cache refreshed' });
 });
+app.post('/refresh/tournaments', async (req: Request, res: Response) => {
+    await refreshTournaments();
+    res.json({ message: 'Tournaments cache refreshed' });
+});
+app.post('/refresh/your_competitors', async (req: Request, res: Response) => {
+    await refreshYourCompetitors();
+    res.json({ message: 'Your competitors cache refreshed' });
+});
+app.post('/refresh/notifications', async (req: Request, res: Response) => {
+    await refreshMatchNotifications();
+    res.json({ message: 'Notifications cache refreshed' });
+});
+
 app.post('/atm', async (req: Request, res: Response) => {
     await forceATM();
     res.json({ message: 'ATM started' });
@@ -103,6 +79,10 @@ app.post('/atm', async (req: Request, res: Response) => {
 app.post('/ptm', async (req: Request, res: Response) => {
     await forcePTM();
     res.json({ message: 'PTM started' });
+});
+app.post('/ota', async (req: Request, res: Response) => {
+    await runOTA();
+    res.json({ message: 'OTA started' });
 });
 
 app.listen(port, () => {

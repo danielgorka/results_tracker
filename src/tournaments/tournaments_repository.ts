@@ -23,7 +23,6 @@ export class TournamentsRepository {
         };
 
         await fs.writeFile(TOURNAMENTS_FILE, JSON.stringify(tournaments, null, 2));
-        logger.debug('Tournaments cache refreshed');
     }
 
     public async getTournaments(): Promise<Tournament[]> {

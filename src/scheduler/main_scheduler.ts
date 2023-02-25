@@ -1,5 +1,6 @@
 import { logger } from "../app";
 import { runATM } from "../atm/monitor";
+import { refreshTimeBasedCaches } from "../cache/cache";
 import { runPTM } from "../ptm/monitor";
 
 var interval: NodeJS.Timer | undefined;
@@ -28,8 +29,17 @@ export function stopMainScheduler() {
 
 
 function run() {
-    if (new Date().getMinutes() < 10) {
+    const now = new Date();
+    if (now.getHours() == 0 && now.getMinutes() < 10) {
+        // Refresh time based caches when new day starts
+        refreshTimeBasedCaches();
+    }
+
+    if (now.getMinutes() < 10) {
+        // 1 hour
         runATM();
     }
+
+    // 10 minutes
     runPTM();
 }

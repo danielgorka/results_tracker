@@ -29,7 +29,7 @@ export async function runOTA() {
 
         const notifications = await createNotifications(tournament.html_results!.url, comps);
 
-        logger.info(`OTA found ${notifications.length} possible notifications for tournament ${tournament.id}`);
+        logger.debug(`OTA found ${notifications.length} possible notifications for tournament ${tournament.id}`);
 
         notificationsRepository.createMatchNotifications(notifications);
     }
