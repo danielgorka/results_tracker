@@ -1,5 +1,5 @@
 import { logger, notificationsRepository, tournamentsRepository, yourCompetitorsRepository } from "../app";
-import { analyzeNextMatches, getRawMatchesData } from "../matches/analyze";
+import { analyzeNextMatches, getRawMatchesData, getRawWinners } from "../matches/analyze";
 import { Match } from "../matches/match";
 import { MatchNotification, MatchSide } from "../notifications/match_notification";
 import { YourCompetitor } from "../your_competitors/your_competitor";
@@ -21,12 +21,6 @@ export async function runOTA() {
             continue;
         }
 
-        const matches = await analyzeNextMatches(tournament.html_results!.url);
-        if (matches === undefined) {
-            // Failed to analyze next matches
-            continue;
-        }
-
         const notifications = await createNotifications(tournament.html_results!.url, comps);
 
         logger.debug(`OTA found ${notifications.length} possible notifications for tournament ${tournament.id}`);
@@ -36,6 +30,18 @@ export async function runOTA() {
 }
 
 async function createNotifications(url: string, comps: YourCompetitor[]): Promise<MatchNotification[]> {
+    const winners = await getRawWinners(url);
+    if (winners === undefined) {
+        return [];
+    }
+
+    // Remove finished competitors
+    comps = comps.filter(comp => !winners[parseInt(comp.competitor_id)]);
+    if (comps.length === 0) {
+        logger.debug('OTA found no competitors to analyze (all finished)');
+        return [];
+    }
+
     const data = await getRawMatchesData(url);
     if (data === undefined) {
         return [];
@@ -47,6 +53,7 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
         const row = data[parseInt(comp.competitor_id)];
 
         if (row !== undefined && row[0] > 0) {
+            logger.debug(`OTA found competitor ${comp.competitor_id} on tatami ${row[0]} and match ${row[1] + 1}`);
             // Creating partial notification (other data will be filled later)
             notifications.push({
                 user_id: comp.user_id,
@@ -59,15 +66,12 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
     }
 
 
-    var matches: Match[][] | undefined = undefined;
-    for (var notification of notifications) {
-        if (matches === undefined) {
-            matches = await analyzeNextMatches(url);
-            if (matches === undefined) {
-                return [];
-            }
-        }
+    var matches = await analyzeNextMatches(url);
+    if (matches === undefined) {
+        return [];
+    }
 
+    for (var notification of notifications) {
         const match = matches[notification.tatami - 1][notification.match - 1];
 
         notification.l_name = match.l_name;

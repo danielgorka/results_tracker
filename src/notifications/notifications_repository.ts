@@ -11,7 +11,7 @@ export class NotificationsRepository {
 
     public async refreshMatchNotifications(tournamentIds: string[]): Promise<void> {
         var list: MatchNotification[] = [];
-       
+
         if (tournamentIds.length > 0) {
             const snapshot = await this.collection()
                 .where('tournament_id', 'in', tournamentIds)
@@ -56,40 +56,44 @@ export class NotificationsRepository {
             });
         });
 
-        // Find new users for specific tournaments that don't have notifications yet
-        const knownIds = sentNotifications.map((notification) => this._doc(notification.user_id, notification.tournament_id));
-        const newIds = notifications.map((notification) => this._doc(notification.user_id, notification.tournament_id))
-            .filter((id) => !knownIds.includes(id));
+        if (list.length > 0) {
+            // Find new users for specific tournaments that don't have notifications yet
+            const knownIds = sentNotifications.map((notification) => this._doc(notification.user_id, notification.tournament_id));
+            const newIds = notifications.map((notification) => this._doc(notification.user_id, notification.tournament_id))
+                .filter((id) => !knownIds.includes(id));
 
 
-        const batch = this.db.batch();
+            const batch = this.db.batch();
 
-        // Create empty notifications documents for users that don't have it yet
-        newIds.forEach((id) => {
-            const doc = this.collection().doc(id);
-            const [user_id, tournament_id] = id.split('_', 2);
-            batch.set(doc, {
-                user_id: user_id,
-                tournament_id: tournament_id,
-                notifications: [],
-                updated_at: FieldValue.serverTimestamp(),
-                created_at: FieldValue.serverTimestamp(),
+            // Create empty notifications documents for users that don't have it yet
+            newIds.forEach((id) => {
+                const doc = this.collection().doc(id);
+                const [user_id, tournament_id] = id.split('_', 2);
+                batch.set(doc, {
+                    user_id: user_id,
+                    tournament_id: tournament_id,
+                    notifications: {},
+                    updated_at: FieldValue.serverTimestamp(),
+                    created_at: FieldValue.serverTimestamp(),
+                });
             });
-        });
 
-        // Save new notifications
-        list.forEach((notification) => {
-            const doc = this.collection().doc(this._doc(notification.user_id, notification.tournament_id));
-            batch.update(doc, {
-                notifications: FieldValue.arrayUnion(MatchNotification.toData(notification)),
-                updated_at: FieldValue.serverTimestamp(),
+            // Save new notifications
+            list.forEach((notification) => {
+                const doc = this.collection().doc(this._doc(notification.user_id, notification.tournament_id));
+                const id = Math.random().toString(36).substring(2, 15);
+                const notificationPath = `notifications.${id}`;
+                batch.update(doc, {
+                    [notificationPath]: MatchNotification.toData(notification),
+                    updated_at: FieldValue.serverTimestamp(),
+                });
             });
-        });
-        await batch.commit();
+            await batch.commit();
+        }
 
         // Save to cache
         const notificationsData = {
-            notifications: sentNotifications.concat(list),
+            notifications: notifications,
             timestamp: new Date().toISOString(),
         };
         await fs.writeFile(NOTIFICATIONS_FILE, JSON.stringify(notificationsData, null, 2));

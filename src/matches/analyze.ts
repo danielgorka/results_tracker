@@ -41,6 +41,19 @@ export async function analyzeNextMatches(url: string): Promise<Match[][] | undef
     }
 }
 
+export async function getRawWinners(url: string): Promise<boolean[] | undefined> {
+    const fullUrl = url + 'c-winners.txt';
+    
+    try {
+        const response = await fetch(fullUrl);
+        const text = await response.text();
+        return text.split('').map(x => (x.charCodeAt(0) & 0x0f) > 0);
+    } catch (e) {
+        logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
+        return undefined;
+    }
+}
+
 export async function getRawMatchesData(url: string): Promise<number[][] | undefined> {
     const fullUrl = url + 'c-matches.txt';
     
