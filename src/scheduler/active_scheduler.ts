@@ -23,6 +23,7 @@ export function stopActiveScheduler() {
 
     logger.info('Active scheduler stopped');
     clearInterval(interval);
+    interval = undefined;
 }
 
 

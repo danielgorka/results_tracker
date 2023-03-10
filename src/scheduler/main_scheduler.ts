@@ -25,6 +25,7 @@ export function stopMainScheduler() {
 
     logger.info('Main scheduler stopped');
     clearInterval(interval);
+    interval = undefined;
 }
 
 
