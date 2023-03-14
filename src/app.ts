@@ -5,12 +5,12 @@ import dotenv from 'dotenv';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { TournamentsRepository } from './tournaments/tournaments_repository';
-import { forceATM } from './atm/monitor';
 import { YourCompetitorsRepository } from './your_competitors/your_competitors_repository';
 import { NotificationsRepository } from './notifications/notifications_repository';
 import { refreshTournaments, refreshCache, refreshMatchNotifications, refreshYourCompetitors } from './cache/cache';
 import { runOTA } from './ota/analyzer';
 import { runPTM } from './ptm/monitor';
+import { runATM } from './atm/monitor';
 
 const startTime = new Date();
 export const logger = winston.createLogger({
@@ -73,7 +73,7 @@ app.post('/refresh/notifications', async (req: Request, res: Response) => {
 });
 
 app.post('/atm', async (req: Request, res: Response) => {
-    await forceATM();
+    await runATM(true);
     res.json({ message: 'ATM started' });
 });
 app.post('/ptm', async (req: Request, res: Response) => {

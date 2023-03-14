@@ -13,7 +13,7 @@ import { analyzeUrl } from "../tournaments/analyze";
 /// - +90 days: every 7 days (day of week is based on end_date) (at 00:00)
 /// - 7 days - 90 days: every 1 day (at 00:00)
 /// - 1 day - 7 days: every 1 hour
-export async function runATM(): Promise<void> {
+export async function runATM(force: boolean = false): Promise<void> {
     logger.info('ATM started');
 
     const now = new Date();
@@ -30,6 +30,11 @@ export async function runATM(): Promise<void> {
         if (tournament.html_results == undefined) {
             // Tournament has no HTML results
             return false;
+        }
+
+        if (force) {
+            // Force check all tournaments
+            return true;
         }
 
         const days = (end_date.getTime() - now.getTime()) / (1000 * 3600 * 24);
@@ -49,38 +54,6 @@ export async function runATM(): Promise<void> {
             notificationsRepository.sendAdminNotification(AdminNotification.createTournamentNotAvailable(tournament));
         }
 
-        if (available) {
-            logger.info(`Tournament ${tournament.id} is available.`);
-        } else {
-            logger.info(`Tournament ${tournament.id} is not available. Should be marked as outdated.`);
-        }
-    }
-}
-
-export async function forceATM(): Promise<void> {
-    logger.info('Force ATM started');
-
-    const now = new Date();
-    const tournaments = await tournamentsRepository.getTournaments();
-
-    const tournamentsToAnalyze = tournaments.filter(tournament => {
-        const end_date = new Date(tournament.end_date);
-        if (end_date.getTime() > now.getTime()) {
-            // Tournament is not finished yet
-            return false;
-        }
-
-        if (tournament.html_results == undefined) {
-            // Tournament has no HTML results
-            return false;
-        }
-
-        return true;
-    });
-
-    for (const tournament of tournamentsToAnalyze) {
-        const available = await analyzeUrl(tournament.html_results!.url);
-        //TODO
         if (available) {
             logger.info(`Tournament ${tournament.id} is available.`);
         } else {
