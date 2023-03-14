@@ -3,6 +3,7 @@ import { MatchNotification } from "./match_notification";
 import * as fs from 'fs/promises';
 import { FieldValue } from "firebase-admin/firestore";
 import { AdminNotification } from "./admin_notification";
+import { JsonHelper } from "../json_helper";
 
 const NOTIFICATIONS_COLLECTION = 'tournament_notifications';
 const NOTIFICATIONS_FILE = 'tmp/match_notifications.json';
@@ -155,7 +156,7 @@ export class NotificationsRepository {
         }
 
         const notifications = await fs.readFile(ADMIN_NOTIFICATIONS_FILE, 'utf-8');
-        const notificationsData = JSON.parse(notifications);
+        const notificationsData = JsonHelper.parse(notifications);
 
         // Remove old notifications
         const now = new Date().getTime();
