@@ -1,4 +1,5 @@
-import { logger, tournamentsRepository } from "../app";
+import { logger, notificationsRepository, tournamentsRepository } from "../app";
+import { AdminNotification } from "../notifications/admin_notification";
 import { analyzeUrl } from "../tournaments/analyze";
 
 
@@ -43,7 +44,11 @@ export async function runATM(): Promise<void> {
 
     for (const tournament of tournamentsToAnalyze) {
         const available = await analyzeUrl(tournament.html_results!.url);
-        //TODO
+
+        if (!available) {
+            notificationsRepository.sendAdminNotification(AdminNotification.createTournamentNotAvailable(tournament));
+        }
+
         if (available) {
             logger.info(`Tournament ${tournament.id} is available.`);
         } else {

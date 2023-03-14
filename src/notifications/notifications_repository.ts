@@ -2,9 +2,12 @@ import { logger } from "../app";
 import { MatchNotification } from "./match_notification";
 import * as fs from 'fs/promises';
 import { FieldValue } from "firebase-admin/firestore";
+import { AdminNotification } from "./admin_notification";
 
 const NOTIFICATIONS_COLLECTION = 'tournament_notifications';
 const NOTIFICATIONS_FILE = 'tmp/match_notifications.json';
+const ADMIN_NOTIFICATIONS_FILE = 'tmp/admin_notifications.json';
+const ADMIN_NOTIFICATIONS_TIMEOUT = 1000 * 60 * 60 * 24; // 24 hours
 
 export class NotificationsRepository {
     constructor(private readonly db: FirebaseFirestore.Firestore) { }
@@ -101,9 +104,68 @@ export class NotificationsRepository {
         logger.info(`Sent ${list.length} notifications`);
     }
 
+    public async sendAdminNotification(notification: AdminNotification) {
+        const sentNotifications = await this.getSentAdminNotifications();
+
+        if (sentNotifications.some((sentNotification) =>
+            sentNotification.title === notification.title
+            && sentNotification.body === notification.body
+            && sentNotification.url === notification.url)) {
+            logger.debug(`Admin notification already sent: ${notification.title}`);
+            return;
+        }
+
+        const url = process.env.SEND_ADMIN_NOTIFICATION_URL!;
+        const body = JSON.stringify(notification);
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: body,
+        });
+
+        if (response.status === 200) {
+            logger.info(`Sent admin notification: ${notification.title}`);
+        } else {
+            logger.error(`Failed to send admin notification: ${response.statusText}`);
+        }
+
+        // Save to cache
+        sentNotifications.push(notification);
+        const notificationsData = {
+            notifications: sentNotifications,
+            timestamp: new Date(),
+        };
+
+        await fs.writeFile(ADMIN_NOTIFICATIONS_FILE, JSON.stringify(notificationsData, null, 2));
+    }
+
     private async getSentMatchNotifications(): Promise<MatchNotification[]> {
         const notifications = await fs.readFile(NOTIFICATIONS_FILE, 'utf-8');
         return JSON.parse(notifications).notifications;
+    }
+
+    private async getSentAdminNotifications(): Promise<AdminNotification[]> {
+        try {
+            await fs.access(ADMIN_NOTIFICATIONS_FILE);
+        } catch (err) {
+            return [];
+        }
+
+        const notifications = await fs.readFile(ADMIN_NOTIFICATIONS_FILE, 'utf-8');
+        const notificationsData = JSON.parse(notifications);
+
+        // Remove old notifications
+        const now = new Date().getTime();
+        const notificationsList = notificationsData.notifications as AdminNotification[];
+        const filteredNotifications = notificationsList.filter((notification) => {
+            const notificationTime = notification.timestamp.getTime();
+            return now - notificationTime < ADMIN_NOTIFICATIONS_TIMEOUT;
+        });
+
+        return filteredNotifications;
     }
 
     private _doc(user_id: string, tournament_id: string) {
