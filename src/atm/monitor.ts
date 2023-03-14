@@ -5,7 +5,7 @@ import { analyzeUrl } from "../tournaments/analyze";
 
 /// Starts the Available Tournaments Monitor
 ///
-/// Should be run every 1 hour. Not more often. 
+/// Should be run every 1 hour. Can be run more often (e.g. forced)
 /// Analyzes all finished public tournaments which has HTML results.
 /// Decision about analysis per each tournament is based on current time.
 ///
