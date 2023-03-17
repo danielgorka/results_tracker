@@ -1,13 +1,13 @@
 
 import { logger } from "../app";
-import { Tournament } from "./tournament";
 
-const SHIAI_REGEX = /<meta name="keywords" content="JudoShiai-[^"]+" \/>/;
+const SHIAI_REGEX = /<meta *name="keywords" *content="JudoShiai-[^"]+" *\/>/;
 
 /// Check whether the URL has available Shiai results.
 ///
 /// Returns true if the results are available. Otherwise returns false.
 export async function analyzeUrl(url: string): Promise<boolean> {
+    logger.debug(`Analyzing URL ${url}`);
     const fullUrl = url + 'index.html';
 
     try {
@@ -17,11 +17,13 @@ export async function analyzeUrl(url: string): Promise<boolean> {
 
         // Check if this is Shiai page (regex)
         if (SHIAI_REGEX.test(html)) {
-            return true;
+            return true; //todo change to true
+        } else {
+            logger.debug(`Failed to analyze URL ${fullUrl} - not a Shiai page`);
+            return false;
         }
     } catch (e) {
         logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
+        return false;
     }
-
-    return false;
 }
