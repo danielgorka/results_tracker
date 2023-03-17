@@ -29,6 +29,10 @@ export const logger = winston.createLogger({
 
 });
 
+process.on('uncaughtException', function(err) {
+    logger.error('Uncaught exception: ' + err);
+});
+
 dotenv.config();
 
 const serviceAccount = require('../firebase-service-account.json');
