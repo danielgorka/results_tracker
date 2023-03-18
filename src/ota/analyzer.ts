@@ -72,7 +72,17 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
     }
 
     for (var notification of notifications) {
-        const match = matches[notification.tatami - 1][notification.match - 1];
+        const tatamiMatches = matches[notification.tatami - 1];
+        if (tatamiMatches === undefined) {
+            logger.debug(`Tatami ${notification.tatami} not found in matches`);
+            continue;
+        }
+
+        const match = tatamiMatches[notification.match - 1];
+        if (match === undefined) {
+            logger.debug(`Match ${notification.match} for tatami ${notification.tatami} not found in matches`);
+            continue;
+        }
 
         notification.l_name = match.l_name;
         notification.l_club = match.l_club;
