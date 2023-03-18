@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { ErrorRequestHandler, Express, Request, Response } from 'express';
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
@@ -54,7 +54,6 @@ export const notificationsRepository = new NotificationsRepository(firestore);
 // Initialize cache and start main scheduler
 refreshCache();
 
-
 app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
@@ -88,6 +87,18 @@ app.post('/ota', async (req: Request, res: Response) => {
     await runOTA();
     res.json({ message: 'OTA started' });
 });
+
+// Catch 404
+app.use(function (req, res, next) {
+    res.status(404).json({ message: 'Not found' });
+});
+
+// Catch Express errors
+const errorHandler : ErrorRequestHandler = (err, req, res, next) => {
+    logger.error(err);
+    res.status(500).json({ message: 'Internal server error' });
+};
+app.use(errorHandler);
 
 app.listen(port, () => {
     logger.info(`⚡️[server]: Server is running at http://localhost:${port}`);
