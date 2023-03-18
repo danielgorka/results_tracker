@@ -24,7 +24,14 @@ export class NotificationsRepository {
 
             snapshot.forEach((doc) => {
                 const data = doc.data();
-                const nots = data.notifications as any[];
+                const notsMap = data.notifications as Record<string, any>;
+                const nots = Object.keys(notsMap).map((key) => {
+                    return {
+                        ...notsMap[key],
+                        id: key,
+                    };
+                });
+                
                 nots.forEach((not) => {
                     list.push({
                         ...not.data,
