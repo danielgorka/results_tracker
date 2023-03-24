@@ -1,5 +1,6 @@
 
 import { logger } from "../app";
+import axios from 'axios';
 
 const SHIAI_REGEX = /<meta *name="keywords" *content="JudoShiai-[^"]+" *\/>/;
 
@@ -12,15 +13,18 @@ export async function analyzeUrl(url: string): Promise<boolean> {
 
     try {
         // Get content of the index.html file
-        const response = await fetch(fullUrl, {
-            cache: 'no-cache',
+        const response = await axios.get(fullUrl, {
+            headers: {
+                'Cache-Control': 'no-cache',
+            },
         });
+
         if (response.status !== 200) {
             logger.debug(`Failed to analyze URL ${fullUrl} - status ${response.status}`);
             return false;
         }
 
-        const html = await response.text();
+        const html = await response.data;
 
         // Check if this is Shiai page (regex)
         if (SHIAI_REGEX.test(html)) {
