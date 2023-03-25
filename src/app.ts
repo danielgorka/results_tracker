@@ -29,7 +29,7 @@ export const logger = winston.createLogger({
 
 });
 
-process.on('uncaughtException', function(err) {
+process.on('uncaughtException', function (err) {
     logger.error('Uncaught exception: ' + err);
 });
 
@@ -50,9 +50,6 @@ const port = process.env.PORT;
 export const tournamentsRepository = new TournamentsRepository(firestore);
 export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore);
 export const notificationsRepository = new NotificationsRepository(firestore);
-
-// Initialize cache and start main scheduler
-refreshCache();
 
 app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
@@ -94,7 +91,7 @@ app.use(function (req, res, next) {
 });
 
 // Catch Express errors
-const errorHandler : ErrorRequestHandler = (err, req, res, next) => {
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     logger.error(err);
     res.status(500).json({ message: 'Internal server error' });
 };
@@ -102,4 +99,7 @@ app.use(errorHandler);
 
 app.listen(port, () => {
     logger.info(`⚡️[server]: Server is running at http://localhost:${port}`);
+
+    // Initialize cache and start main scheduler
+    refreshCache();
 });
