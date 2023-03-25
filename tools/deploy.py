@@ -11,7 +11,6 @@ load_dotenv()
 hostname = os.getenv("SSH_HOSTNAME")
 username = os.getenv("SSH_USERNAME")
 password = os.getenv("SSH_PASSWORD")
-github_url = os.getenv("GITHUB_URL")
 tracker_url = os.getenv("TRACKER_URL")
 
 # GIT push
@@ -38,7 +37,7 @@ def run_command(command):
 run_command("cd results_tracker")
 run_command("pwd")
 
-run_command(f"git pull {github_url}")
+run_command(f"git pull")
 run_command(f"git status")
 run_command(f"npm install")
 run_command(f"npm run build")
@@ -56,8 +55,8 @@ while not channel.exit_status_ready():
 # Close the SSH connection
 ssh_client.close()
 
-# Wait 3 seconds
-time.sleep(3)
+print("Waiting 5 seconds...")
+time.sleep(5)
 
 # Send get request
 resp = requests.get(tracker_url)
