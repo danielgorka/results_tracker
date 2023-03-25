@@ -7,7 +7,7 @@ const SHIAI_REGEX = /<meta *name="keywords" *content="JudoShiai-[^"]+" *\/>/;
 /// Check whether the URL has available Shiai results.
 ///
 /// Returns true if the results are available. Otherwise returns false.
-export async function analyzeUrl(url: string): Promise<boolean> {
+export async function analyzeUrl(url: string, useProxy: boolean = false): Promise<boolean> {
     logger.debug(`Analyzing URL ${url}`);
     const fullUrl = url + 'index.html';
 
@@ -17,6 +17,7 @@ export async function analyzeUrl(url: string): Promise<boolean> {
             headers: {
                 'Cache-Control': 'no-cache',
             },
+            proxy: useProxy ? require('../../config.json').proxy : undefined,
         });
 
         if (response.status !== 200) {
@@ -31,6 +32,7 @@ export async function analyzeUrl(url: string): Promise<boolean> {
             return true;
         } else {
             logger.debug(`Failed to analyze URL ${fullUrl} - not a Shiai page`);
+            logger.debug(html);
             return false;
         }
     } catch (e) {
