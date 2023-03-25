@@ -1,4 +1,5 @@
 import os
+import time
 import paramiko
 import requests
 from dotenv import load_dotenv
@@ -55,6 +56,8 @@ while not channel.exit_status_ready():
 # Close the SSH connection
 ssh_client.close()
 
+# Wait 3 seconds
+time.sleep(3)
 
 # Send get request
 resp = requests.get(tracker_url)
