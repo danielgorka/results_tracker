@@ -2,6 +2,7 @@ import express, { ErrorRequestHandler, Express, Request, Response } from 'expres
 import { initializeApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
+import * as fs from 'fs/promises';
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 import { TournamentsRepository } from './tournaments/tournaments_repository';
@@ -70,6 +71,11 @@ app.post('/refresh/your_competitors', async (req: Request, res: Response) => {
 app.post('/refresh/notifications', async (req: Request, res: Response) => {
     await refreshMatchNotifications();
     res.json({ message: 'Notifications cache refreshed' });
+});
+
+app.post('/clear/admin_nots', async (req: Request, res: Response) => {
+    await notificationsRepository.clearSentAdminNotifications();
+    res.json({ message: 'Sent admin notifications cleared' });
 });
 
 app.post('/atm', async (req: Request, res: Response) => {

@@ -150,6 +150,10 @@ export class NotificationsRepository {
         await fs.writeFile(ADMIN_NOTIFICATIONS_FILE, JSON.stringify(notificationsData, null, 2));
     }
 
+    public async clearSentAdminNotifications() {
+        await fs.unlink(ADMIN_NOTIFICATIONS_FILE);
+    }
+
     private async getSentMatchNotifications(): Promise<MatchNotification[]> {
         const notifications = await fs.readFile(NOTIFICATIONS_FILE, 'utf-8');
         return JSON.parse(notifications).notifications;
