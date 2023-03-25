@@ -73,7 +73,8 @@ app.post('/refresh/notifications', async (req: Request, res: Response) => {
 });
 
 app.post('/atm', async (req: Request, res: Response) => {
-    await runATM(true);
+    // Unawaited
+    runATM(true);
     res.json({ message: 'ATM started' });
 });
 app.post('/ptm', async (req: Request, res: Response) => {
