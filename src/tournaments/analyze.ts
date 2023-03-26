@@ -9,7 +9,11 @@ const SHIAI_REGEX = /<meta *name="keywords" *content="JudoShiai-[^"]+" *\/>/;
 /// Returns true if the results are available. Otherwise returns false.
 export async function analyzeUrl(url: string, useProxy: boolean = false): Promise<boolean> {
     logger.debug(`Analyzing URL ${url}`);
-    const fullUrl = url + 'index.html';
+    var fullUrl = url + 'index.html';
+
+    if (useProxy) {
+        fullUrl = process.env.PROXY_URL + encodeURIComponent(fullUrl);
+    } 
 
     try {
         // Get content of the index.html file
@@ -17,11 +21,10 @@ export async function analyzeUrl(url: string, useProxy: boolean = false): Promis
             headers: {
                 'Cache-Control': 'no-cache',
             },
-            proxy: useProxy ? require('../../config.json').proxy : undefined,
         });
 
         if (response.status !== 200) {
-            logger.debug(`Failed to analyze URL ${fullUrl} - status ${response.status}`);
+            logger.debug(`Failed to analyze URL ${url} - status ${response.status}`);
             return false;
         }
 
@@ -31,15 +34,15 @@ export async function analyzeUrl(url: string, useProxy: boolean = false): Promis
         if (SHIAI_REGEX.test(html)) {
             return true;
         } else {
-            logger.debug(`Failed to analyze URL ${fullUrl} - not a Shiai page`);
+            logger.debug(`Failed to analyze URL ${url} - not a Shiai page`);
             logger.debug(html);
             return false;
         }
     } catch (e) {
         if (e instanceof TypeError) {
-            logger.debug(`Failed to analyze URL ${fullUrl} - ${e.name} ${e.message} ${e.stack}`);
+            logger.debug(`Failed to analyze URL ${url} - ${e.name} ${e.message} ${e.stack}`);
         } else {
-            logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
+            logger.debug(`Failed to analyze URL ${url} - ${e}`);
         }
         return false;
     }
