@@ -1,7 +1,9 @@
 import { logger, notificationsRepository, tournamentsRepository, yourCompetitorsRepository } from "../app";
-import { analyzeNextMatches, getRawMatchesData, getRawWinners } from "../matches/analyze";
+import { removeDiacritics } from "../core/utils";
+import { analyzeNextMatches } from "../matches/analyze";
 import { Match } from "../matches/match";
 import { MatchNotification, MatchSide } from "../notifications/match_notification";
+import { fillCompetitorsData } from "../your_competitors/fill_data";
 import { YourCompetitor } from "../your_competitors/your_competitor";
 
 /// Starts the Ongoing Tournaments Analyzer
@@ -30,65 +32,70 @@ export async function runOTA() {
 }
 
 async function createNotifications(url: string, comps: YourCompetitor[]): Promise<MatchNotification[]> {
-    const winners = await getRawWinners(url);
-    if (winners === undefined) {
-        return [];
-    }
-
-    // Remove finished competitors
-    comps = comps.filter(comp => !winners[parseInt(comp.competitor_id)]);
-    if (comps.length === 0) {
-        logger.debug('OTA found no competitors to analyze (all finished)');
-        return [];
-    }
-
-    const data = await getRawMatchesData(url);
-    if (data === undefined) {
-        return [];
-    }
-
-    var notifications: MatchNotification[] = [];
-
-    for (const comp of comps) {
-        const row = data[parseInt(comp.competitor_id)];
-
-        if (row !== undefined && row[0] > 0) {
-            logger.debug(`OTA found competitor ${comp.competitor_id} on tatami ${row[0]} and match ${row[1] + 1}`);
-            // Creating partial notification (other data will be filled later)
-            notifications.push({
-                user_id: comp.user_id,
-                tournament_id: comp.tournament_id,
-                competitor_id: comp.competitor_id,
-                tatami: row[0],
-                match: row[1] + 1,
-            });
-        }
-    }
+    // Fill competitor data (name, club, category)
+    await fillCompetitorsData(url, comps);
 
 
+    // Analyze matches file
     var matches = await analyzeNextMatches(url);
     if (matches === undefined) {
         return [];
     }
 
-    for (var notification of notifications) {
-        const tatamiMatches = matches[notification.tatami - 1];
-        if (tatamiMatches === undefined) {
-            logger.debug(`Tatami ${notification.tatami} not found in matches`);
-            continue;
-        }
+    // Find competitors in matches
+    var notifications: MatchNotification[] = [];
+    for (var tatami = 0; tatami < matches.length; tatami++) {
+        for (var match = 0; match < matches[tatami].length; match++) {
+            for (const comp of comps) {
+                var side: MatchSide | undefined = undefined;
+                if (isLeftCompetitor(matches[tatami][match], comp)) {
+                    side = 'left';
+                } 
+                if (isRightCompetitor(matches[tatami][match], comp)) {
+                   side = side === undefined ? 'right' : 'both';
+                }
 
-        const match = tatamiMatches[notification.match - 1];
-        if (match === undefined) {
-            logger.debug(`Match ${notification.match} for tatami ${notification.tatami} not found in matches`);
-            continue;
+                if (side !== undefined) {
+                    notifications.push({
+                        user_id: comp.user_id,
+                        tournament_id: comp.tournament_id,
+                        competitor_id: comp.competitor_id,
+                        tatami: tatami + 1,
+                        match: match + 1,
+                        category: matches[tatami][match].category,
+                        l_name: matches[tatami][match].l_name,
+                        l_club: matches[tatami][match].l_club,
+                        r_name: matches[tatami][match].r_name,
+                        r_club: matches[tatami][match].r_club,
+                        side: side,
+                    });
+                }
+            }
         }
-
-        notification.l_name = match.l_name;
-        notification.l_club = match.l_club;
-        notification.r_name = match.r_name;
-        notification.r_club = match.r_club;
     }
 
     return notifications;
+}
+
+function isLeftCompetitor(match: Match, comp: YourCompetitor): boolean {
+    return strCompare(match.l_name, comp.name!) && strCompare(match.l_club, comp.club!) && strCompare(match.category, comp.category!);
+}
+
+function isRightCompetitor(match: Match, comp: YourCompetitor): boolean {
+    return strCompare(match.r_name, comp.name!) && strCompare(match.r_club, comp.club!) && strCompare(match.category, comp.category!);
+}
+
+// Compares two strings
+// - Case insensitive
+// - Whitespace insensitive
+// - Special characters converted to ASCII
+// - Words order insensitive
+function strCompare(a: string, b: string): boolean {
+    const a1 = removeDiacritics(a.toLowerCase().replace(/\s/g, ''));
+    const b1 = removeDiacritics(b.toLowerCase().replace(/\s/g, ''));
+
+    const a2 = a1.split('').sort().join('');
+    const b2 = b1.split('').sort().join('');
+
+    return a2 === b2;
 }

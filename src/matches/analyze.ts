@@ -11,6 +11,7 @@ export async function analyzeNextMatches(url: string): Promise<Match[][] | undef
         const html = await response.text();
         const $ = load(html);
 
+        const catList = $('table.nextmatches tbody tr td.cur1 b, table.nextmatches tbody tr td.cur2 b');
         const leftList = $('table.nextmatches tbody tr td.cdl1, table.nextmatches tbody tr td.cdl2');
         const rightList = $('table.nextmatches tbody tr td.cdr1, table.nextmatches tbody tr td.cdr2');
 
@@ -19,6 +20,7 @@ export async function analyzeNextMatches(url: string): Promise<Match[][] | undef
         var matches: Match[][] = Array(tatamiCount).fill(null).map(() => Array(10).fill(null));
 
         for (let i = 0; i < leftList.length; i++) {
+            const category = $(catList[i]).contents().toString();
             const left = $(leftList[i]).contents().toString().split('<br>');
             const right = $(rightList[i]).contents().toString().split('<br>');
 
@@ -26,6 +28,7 @@ export async function analyzeNextMatches(url: string): Promise<Match[][] | undef
             const tatami = i % tatamiCount;
 
             matches[tatami][round] = {
+                category: category,
                 l_name: left[0],
                 l_club: left[1],
                 r_name: right[0],
@@ -35,32 +38,6 @@ export async function analyzeNextMatches(url: string): Promise<Match[][] | undef
 
         return matches;
 
-    } catch (e) {
-        logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
-        return undefined;
-    }
-}
-
-export async function getRawWinners(url: string): Promise<boolean[] | undefined> {
-    const fullUrl = url + 'c-winners.txt';
-    
-    try {
-        const response = await fetch(fullUrl);
-        const text = await response.text();
-        return text.split('').map(x => (x.charCodeAt(0) & 0x0f) > 0);
-    } catch (e) {
-        logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
-        return undefined;
-    }
-}
-
-export async function getRawMatchesData(url: string): Promise<number[][] | undefined> {
-    const fullUrl = url + 'c-matches.txt';
-    
-    try {
-        const response = await fetch(fullUrl);
-        const text = await response.text();
-        return text.split('\n').map(line => line.split('\t').map(x => parseInt(x)));
     } catch (e) {
         logger.debug(`Failed to analyze URL ${fullUrl} - ${e}`);
         return undefined;
