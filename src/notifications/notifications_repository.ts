@@ -56,60 +56,38 @@ export class NotificationsRepository {
         const sentNotifications = await this.getSentMatchNotifications();
 
         // Skip already sent notifications
-        const list = notifications.filter((notification) => {
+        const newNotifications = notifications.filter((notification) => {
             return !sentNotifications.some((sentNotification) => {
-                return sentNotification.user_id === notification.user_id
-                    && sentNotification.tournament_id === notification.tournament_id
-                    && sentNotification.l_name === notification.l_name
-                    && sentNotification.l_club === notification.l_club
-                    && sentNotification.r_name === notification.r_name
-                    && sentNotification.r_club === notification.r_club;
+                return MatchNotification.isSimilar(notification, sentNotification);
             });
         });
 
-        if (list.length > 0) {
-            // Find new users for specific tournaments that don't have notifications yet
-            const knownIds = sentNotifications.map((notification) => this._doc(notification.user_id, notification.tournament_id));
-            const newIds = notifications.map((notification) => this._doc(notification.user_id, notification.tournament_id))
-                .filter((id) => !knownIds.includes(id));
-
-
-            const batch = this.db.batch();
-
-            // Create empty notifications documents for users that don't have it yet
-            newIds.forEach((id) => {
-                const doc = this.collection().doc(id);
-                const [user_id, tournament_id] = id.split('_', 2);
-                batch.set(doc, {
-                    user_id: user_id,
-                    tournament_id: tournament_id,
-                    notifications: {},
-                    updated_at: FieldValue.serverTimestamp(),
-                    created_at: FieldValue.serverTimestamp(),
-                });
-            });
-
-            // Save new notifications
-            list.forEach((notification) => {
+        if (newNotifications.length > 0) {
+            // Save notifications
+            const promises = newNotifications.map((notification) => {
                 const doc = this.collection().doc(this._doc(notification.user_id, notification.tournament_id));
                 const id = Math.random().toString(36).substring(2, 15);
-                const notificationPath = `notifications.${id}`;
-                batch.update(doc, {
-                    [notificationPath]: MatchNotification.toData(notification),
+                return doc.set({
+                    notifications: {
+                        [id]: MatchNotification.toData(notification),
+                    },
+                    user_id: notification.user_id,
+                    tournament_id: notification.tournament_id,
                     updated_at: FieldValue.serverTimestamp(),
-                });
+                }, { merge: true });
             });
-            await batch.commit();
+
+            await Promise.all(promises);
         }
 
-        // Save to cache
+        // Save current notifications to cache (replace old cache to avoid keeping old notifications)
         const notificationsData = {
             notifications: notifications,
             timestamp: new Date().toISOString(),
         };
         await fs.writeFile(NOTIFICATIONS_FILE, JSON.stringify(notificationsData, null, 2));
 
-        logger.info(`Sent ${list.length} notifications`);
+        logger.info(`Sent ${newNotifications.length} notifications`);
     }
 
     public async sendAdminNotification(notification: AdminNotification) {
