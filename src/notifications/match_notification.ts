@@ -1,5 +1,4 @@
 import { DocumentData, Timestamp } from "firebase-admin/firestore";
-import { encodeQueryData } from "../core/utils";
 
 export declare type MatchSide = 'left' | 'right' | 'both';
 
@@ -39,7 +38,6 @@ export class MatchNotification {
         return {
             read: false,
             type: 'upcoming_match',
-            image_url: this.getImageUrl(notification),
             data: {
                 competitor_id: notification.competitor_id,
                 tatami: notification.tatami,
@@ -53,17 +51,5 @@ export class MatchNotification {
             updated_at: Timestamp.now(),
             created_at: Timestamp.now(),
         };
-    }
-
-    private static getImageUrl(notification: MatchNotification): string {
-        return process.env.MATCH_IMAGES_URL + '?' + encodeQueryData({
-            match: notification.match,
-            tatami: notification.tatami,
-            category: notification.category,
-            l_name: notification.l_name,
-            l_club: notification.l_club,
-            r_name: notification.r_name,
-            r_club: notification.r_club,
-        });
     }
 }
