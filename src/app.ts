@@ -12,6 +12,8 @@ import { refreshTournaments, refreshCache, refreshMatchNotifications, refreshYou
 import { runOTA } from './ota/analyzer';
 import { runPTM } from './ptm/monitor';
 import { runATM } from './atm/monitor';
+import axios from 'axios';
+import { Agent } from 'http';
 
 const startTime = new Date();
 
@@ -44,6 +46,9 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT == null
 initializeApp({
     credential: cert(serviceAccount),
 });
+
+axios.defaults.timeout = 30000;
+axios.defaults.httpsAgent = new Agent({ keepAlive: true });
 
 const firestore = getFirestore();
 firestore.settings({ ignoreUndefinedProperties: true });
