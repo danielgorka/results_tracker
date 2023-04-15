@@ -14,6 +14,9 @@ import { runPTM } from './ptm/monitor';
 import { runATM } from './atm/monitor';
 
 const startTime = new Date();
+
+dotenv.config();
+
 export const logger = winston.createLogger({
     level: "debug",
     format: winston.format.combine(
@@ -33,8 +36,6 @@ export const logger = winston.createLogger({
 process.on('uncaughtException', function (err) {
     logger.error('Uncaught exception: ' + err);
 });
-
-dotenv.config();
 
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT == null
     ? require('../firebase-service-account.json')
