@@ -1,6 +1,7 @@
 import { logger } from "../app";
 import { YourCompetitor } from "./your_competitor";
 import axios from "axios";
+import { get } from "../core/requests";
 
 /**
  * Cache TTL for competitor txt files.
@@ -51,11 +52,7 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
     }
 
     try {
-        const response = await axios.get(fullUrl, {
-            headers: {
-                'Cache-Control': 'no-cache',
-            },
-        });
+        const response = await get(fullUrl, 'retry');
         const text = await response.data;
         const lines = text.split('\n');
         return {

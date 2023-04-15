@@ -2,17 +2,14 @@ import { load } from "cheerio";
 import { logger } from "../app";
 import { Match } from "./match";
 import axios from 'axios';
+import { get } from "../core/requests";
 
 export async function analyzeNextMatches(url: string): Promise<Match[][] | undefined> {
     const fullUrl = url + 'nextmatches.html';
 
     try {
         // Get content of the nextmatches.html file
-        const response = await axios.get(fullUrl, {
-            headers: {
-                'Cache-Control': 'no-cache',
-            },
-        });
+        const response = await get(fullUrl, 'retry');
         const html = await response.data;
         const $ = load(html);
 

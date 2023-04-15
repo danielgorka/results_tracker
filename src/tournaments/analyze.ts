@@ -1,27 +1,20 @@
 
 import { logger } from "../app";
 import axios from 'axios';
+import { get } from "../core/requests";
 
 const SHIAI_REGEX = /<meta *name="keywords" *content="JudoShiai-[^"]+" *\/>/;
 
 /// Check whether the URL has available Shiai results.
 ///
 /// Returns true if the results are available. Otherwise returns false.
-export async function analyzeUrl(url: string, useProxy: boolean = false): Promise<boolean> {
+export async function analyzeUrl(url: string): Promise<boolean> {
     logger.debug(`Analyzing URL ${url}`);
     var fullUrl = url + 'index.html';
 
-    if (useProxy) {
-        fullUrl = process.env.PROXY_URL + encodeURIComponent(fullUrl);
-    } 
-
     try {
         // Get content of the index.html file
-        const response = await axios.get(fullUrl, {
-            headers: {
-                'Cache-Control': 'no-cache',
-            },
-        });
+        const response = await get(fullUrl, 'retry');
 
         if (response.status !== 200) {
             logger.debug(`Failed to analyze URL ${url} - status ${response.status}`);

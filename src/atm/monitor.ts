@@ -53,26 +53,17 @@ export async function runATM(force: boolean = false): Promise<void> {
 }
 
 async function analyzeTournament(tournament: Tournament): Promise<void> {
-    // 0 - no proxy request
-    // 1 - proxy request after 5 seconds
-    // 2 - no proxy request after 5 minutes
-    // 3 - proxy request after 5 seconds
     var available = false;
-    for (var repeatCount = 0; repeatCount < 4; repeatCount++) {
-        available = await analyzeUrl(tournament.html_results!.url, repeatCount % 2 === 1);
+    for (var repeatCount = 0; repeatCount < 2; repeatCount++) {
+        available = await analyzeUrl(tournament.html_results!.url);
 
         if (available) {
             logger.info(`Tournament ${tournament.id} is available.`);
             break;
         }
 
-        if (repeatCount % 2 === 0) {
-            logger.info(`Tournament ${tournament.id} is not available. Repeating with proxy in 5 seconds.`);
-            await new Promise(resolve => setTimeout(resolve, 5000));
-        } else if (repeatCount < 4) {
-            logger.info(`Tournament ${tournament.id} is not available (proxy). Repeating in 5 minutes.`);
-            await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
-        }
+        logger.info(`Tournament ${tournament.id} is not available. Repeating in 5 minutes.`);
+        await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
     }
 
     if (!available) {
