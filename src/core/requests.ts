@@ -21,11 +21,12 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
         var headers = {};
         if (proxyRule === 'force') {
             // Proxy request
-            finalUrl = process.env.PROXY_URL!;
-            headers = {
-                'Proxy-Auth': process.env.PROXY_KEY!,
-                'Proxy-Target-Url': url,
-            };
+            finalUrl = url;
+            // finalUrl = process.env.PROXY_URL!;
+            // headers = {
+            //     'Proxy-Auth': process.env.PROXY_KEY!,
+            //     'Proxy-Target-Url': url,
+            // };
         } else {
             finalUrl = url;
         }
