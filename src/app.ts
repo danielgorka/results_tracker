@@ -13,7 +13,7 @@ import { runOTA } from './ota/analyzer';
 import { runPTM } from './ptm/monitor';
 import { runATM } from './atm/monitor';
 import axios from 'axios';
-import { Agent } from 'http';
+import { Agent } from 'https';
 
 const startTime = new Date();
 
