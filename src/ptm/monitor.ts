@@ -21,7 +21,7 @@ export async function runPTM(force: boolean = false): Promise<void> {
     }
 
     const now = new Date();
-    const urls = require('../../config.json').urls as string[];
+    const urls = (process.env.CONFIG == null ? require('../../config.json').urls : JSON.parse(process.env.CONFIG!)) as string[];
     const tournaments = await tournamentsRepository.getTournaments();
 
     const urlsToAnalyze = urls.filter(url => {
