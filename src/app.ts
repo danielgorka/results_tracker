@@ -23,7 +23,7 @@ export const logger = winston.createLogger({
     transports: [
         new winston.transports.Console(),
         new winston.transports.DailyRotateFile({
-            filename: "logs/%DATE%.log",
+            filename: process.env.LOGS_FILENAME,
             datePattern: "YYYY-MM-DD",
         }),
     ],
@@ -46,7 +46,7 @@ const firestore = getFirestore();
 firestore.settings({ ignoreUndefinedProperties: true });
 
 const app: Express = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 8000;
 
 export const tournamentsRepository = new TournamentsRepository(firestore);
 export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore);
