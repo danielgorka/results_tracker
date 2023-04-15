@@ -23,8 +23,8 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
             // Proxy request
             finalUrl = process.env.PROXY_URL!;
             headers = {
-                'HTTP_PROXY_AUTH': process.env.PROXY_KEY!,
-                'HTTP_PROXY_TARGET_URL': url,
+                'Proxy-Auth': process.env.PROXY_KEY!,
+                'Proxy-Target-Url': url,
             };
         } else {
             finalUrl = url;
