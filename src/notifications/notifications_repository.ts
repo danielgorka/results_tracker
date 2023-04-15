@@ -4,6 +4,7 @@ import * as fs from 'fs/promises';
 import { FieldValue } from "firebase-admin/firestore";
 import { AdminNotification } from "./admin_notification";
 import { JsonHelper } from "../json_helper";
+import axios from "axios";
 
 const NOTIFICATIONS_COLLECTION = 'tournament_notifications';
 const ADMIN_NOTIFICATIONS_TIMEOUT = 1000 * 60 * 60 * 24; // 24 hours
@@ -102,12 +103,10 @@ export class NotificationsRepository {
         const url = process.env.SEND_ADMIN_NOTIFICATION_URL!;
         const body = JSON.stringify(notification);
 
-        const response = await fetch(url, {
-            method: 'POST',
+        const response = await axios.post(url, body, {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: body,
         });
 
         if (response.status === 200) {

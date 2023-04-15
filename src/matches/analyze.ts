@@ -1,14 +1,19 @@
 import { load } from "cheerio";
 import { logger } from "../app";
 import { Match } from "./match";
+import axios from 'axios';
 
 export async function analyzeNextMatches(url: string): Promise<Match[][] | undefined> {
     const fullUrl = url + 'nextmatches.html';
-    
+
     try {
         // Get content of the nextmatches.html file
-        const response = await fetch(fullUrl);
-        const html = await response.text();
+        const response = await axios.get(fullUrl, {
+            headers: {
+                'Cache-Control': 'no-cache',
+            },
+        });
+        const html = await response.data;
         const $ = load(html);
 
         const catList = $('table.nextmatches tbody tr td.cur1 b, table.nextmatches tbody tr td.cur2 b');
