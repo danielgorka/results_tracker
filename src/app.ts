@@ -36,7 +36,9 @@ process.on('uncaughtException', function (err) {
 
 dotenv.config();
 
-const serviceAccount = require('../firebase-service-account.json');
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT == null
+    ? require('../firebase-service-account.json')
+    : JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT!);
 
 initializeApp({
     credential: cert(serviceAccount),
