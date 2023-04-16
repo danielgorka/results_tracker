@@ -6,7 +6,7 @@ import { get } from "../core/requests";
 /**
  * Cache TTL for competitor txt files.
  */
-const cacheTtl = 5 * 60 * 1000; // 5 minutes
+const cacheTtl = 15 * 60 * 1000; // 15 minutes
 var cachedCompTxts: CacheData = {};
 
 type CacheData = {
@@ -51,8 +51,6 @@ export async function fillCompetitorsData(url: string, comps: YourCompetitor[]):
 async function getCompData(url: string, compId: string): Promise<CompData | undefined> {
     const fullUrl = url + 'c-' + compId + '.txt';
 
-    logger.debug('Cache: ' + JSON.stringify(cachedCompTxts));
-
     const cachedComp = cachedCompTxts[fullUrl];
     if (cachedComp !== undefined) {
         if (Date.now() - cachedComp.timestamp < cacheTtl) {
@@ -75,7 +73,6 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
             timestamp: Date.now(),
         };
         cachedCompTxts[fullUrl] = compData;
-        logger.debug(`Cache updated (${fullUrl}): ` + JSON.stringify(cachedCompTxts));
         return compData;
     } catch (e) {
         logger.debug(`Failed to analyze competitor txt file ${fullUrl} - ${e}`);
