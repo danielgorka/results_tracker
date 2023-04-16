@@ -15,11 +15,11 @@ export async function runOTA() {
 
     const your_competitors = await yourCompetitorsRepository.getYourCompetitors();
     const tournaments = await tournamentsRepository.getTournaments();
+    logger.debug(`Your competitors to analyze: ${your_competitors.length}`);
 
     for (const tournament of tournaments) {
         const comps = your_competitors.filter(your_competitor => your_competitor.tournament_id === tournament.id);
         if (comps.length === 0) {
-            logger.debug(`No your competitors for tournament ${tournament.id}`);
             // Tournament has no your competitors
             continue;
         }
