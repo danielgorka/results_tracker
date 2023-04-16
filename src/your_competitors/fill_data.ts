@@ -70,6 +70,7 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
             timestamp: Date.now(),
         };
         cachedCompTxts.set(fullUrl, compData);
+        logger.debug('Cache updated: ' + JSON.stringify(Array.from(cachedCompTxts.entries())));
         return compData;
     } catch (e) {
         logger.debug(`Failed to analyze competitor txt file ${fullUrl} - ${e}`);
