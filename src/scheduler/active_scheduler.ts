@@ -27,6 +27,8 @@ export function stopActiveScheduler() {
 }
 
 
-function run() {
-    runOTA();
+async function run() {
+    logger.debug('Active scheduler run');
+    await runOTA();
+    logger.debug('Active scheduler run finished');
 }
