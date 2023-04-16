@@ -46,6 +46,8 @@ export async function fillCompetitorsData(url: string, comps: YourCompetitor[]):
 async function getCompData(url: string, compId: string): Promise<CompData | undefined> {
     const fullUrl = url + 'c-' + compId + '.txt';
 
+    logger.debug('Cache: ' + cachedCompTxts);
+    
     const cachedComp = cachedCompTxts.get(fullUrl);
     if (cachedComp !== undefined) {
         if (Date.now() - cachedComp.timestamp < cacheTtl) {
