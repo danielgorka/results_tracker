@@ -30,6 +30,8 @@ export async function runOTA() {
 
         notificationsRepository.createMatchNotifications(notifications);
     }
+
+    logger.info('OTA finished');
 }
 
 async function createNotifications(url: string, comps: YourCompetitor[]): Promise<MatchNotification[]> {
