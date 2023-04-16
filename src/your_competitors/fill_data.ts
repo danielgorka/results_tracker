@@ -48,19 +48,23 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
 
     const cachedComp = cachedCompTxts.get(fullUrl);
     if (cachedComp !== undefined && Date.now() - cachedComp.timestamp < cacheTtl) {
+        logger.debug(`Using cached data for competitor txt file ${fullUrl}`);
         return cachedComp;
     }
 
     try {
+        logger.debug(`Getting data for competitor txt file ${fullUrl}`);
         const response = await get(fullUrl, 'retry');
         const text = await response.data;
         const lines = text.split('\n');
-        return {
+        const compData = {
             name: lines[0] + ' ' + lines[1],
             club: lines[4],
             category: lines[7],
             timestamp: Date.now(),
         };
+        cachedCompTxts.set(fullUrl, compData);
+        return compData;
     } catch (e) {
         logger.debug(`Failed to analyze competitor txt file ${fullUrl} - ${e}`);
         return undefined;
