@@ -17,11 +17,11 @@ export async function runOTA() {
     const tournaments = await tournamentsRepository.getTournaments();
     logger.debug(`Your competitors to analyze: ${your_competitors.length}`);
 
-    for (const tournament of tournaments) {
+    const promises = tournaments.map(async tournament => {
         const comps = your_competitors.filter(your_competitor => your_competitor.tournament_id === tournament.id);
         if (comps.length === 0) {
             // Tournament has no your competitors
-            continue;
+            return;
         }
 
         const notifications = await createNotifications(tournament.html_results!.url, comps);
@@ -29,7 +29,9 @@ export async function runOTA() {
         logger.debug(`OTA found ${notifications.length} possible notifications for tournament ${tournament.id}`);
 
         notificationsRepository.createMatchNotifications(notifications);
-    }
+    });
+
+    await Promise.all(promises);
 
     logger.info('OTA finished');
 }

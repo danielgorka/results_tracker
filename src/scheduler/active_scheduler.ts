@@ -1,7 +1,9 @@
 import { logger } from "../app";
 import { runOTA } from "../ota/analyzer";
+import { setIntervalAsync, clearIntervalAsync } from 'set-interval-async/fixed';
+import { SetIntervalAsyncTimer } from "set-interval-async";
 
-var interval: NodeJS.Timer | undefined;
+var interval: SetIntervalAsyncTimer<any> | undefined;
 
 // 5 seconds
 const INTERVAL = 1000 * 5;
@@ -10,9 +12,9 @@ export function startActiveScheduler() {
     if (interval !== undefined) {
         return;
     }
-    
+
     logger.info('Active scheduler started');
-    interval = setInterval(run, INTERVAL);
+    interval = setIntervalAsync(run, INTERVAL);
     run();
 }
 
@@ -22,13 +24,11 @@ export function stopActiveScheduler() {
     }
 
     logger.info('Active scheduler stopped');
-    clearInterval(interval);
+    clearIntervalAsync(interval);
     interval = undefined;
 }
 
 
 async function run() {
-    logger.debug('Active scheduler run');
     await runOTA();
-    logger.debug('Active scheduler run finished');
 }
