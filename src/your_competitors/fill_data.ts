@@ -47,9 +47,13 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
     const fullUrl = url + 'c-' + compId + '.txt';
 
     const cachedComp = cachedCompTxts.get(fullUrl);
-    if (cachedComp !== undefined && Date.now() - cachedComp.timestamp < cacheTtl) {
-        logger.debug(`Using cached data for competitor txt file ${fullUrl}`);
-        return cachedComp;
+    if (cachedComp !== undefined) {
+        if (Date.now() - cachedComp.timestamp < cacheTtl) {
+            logger.debug(`Using cached data for competitor txt file ${fullUrl}`);
+            return cachedComp;
+        } else {
+            logger.debug(`Cached data for competitor txt file ${fullUrl} expired`);
+        }
     }
 
     try {
