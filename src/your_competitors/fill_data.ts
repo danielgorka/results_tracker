@@ -7,7 +7,12 @@ import { get } from "../core/requests";
  * Cache TTL for competitor txt files.
  */
 const cacheTtl = 5 * 60 * 1000; // 5 minutes
-var cachedCompTxts: Map<string, CompData> = new Map();
+var cachedCompTxts: CacheData = {};
+
+type CacheData = {
+    [key: string]: CompData;
+};
+
 
 class CompData {
     name!: string;
@@ -46,9 +51,9 @@ export async function fillCompetitorsData(url: string, comps: YourCompetitor[]):
 async function getCompData(url: string, compId: string): Promise<CompData | undefined> {
     const fullUrl = url + 'c-' + compId + '.txt';
 
-    logger.debug('Cache: ' + JSON.stringify(Array.from(cachedCompTxts.entries())));
+    logger.debug('Cache: ' + JSON.stringify(cachedCompTxts));
 
-    const cachedComp = cachedCompTxts.get(fullUrl);
+    const cachedComp = cachedCompTxts[fullUrl];
     if (cachedComp !== undefined) {
         if (Date.now() - cachedComp.timestamp < cacheTtl) {
             logger.debug(`Using cached data for competitor txt file ${fullUrl}`);
@@ -69,8 +74,8 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
             category: lines[7],
             timestamp: Date.now(),
         };
-        cachedCompTxts.set(fullUrl, compData);
-        logger.debug('Cache updated: ' + JSON.stringify(Array.from(cachedCompTxts.entries())) + ' Added: ' + JSON.stringify(compData));
+        cachedCompTxts[fullUrl] = compData;
+        logger.debug(`Cache updated (${fullUrl}): ` + JSON.stringify(cachedCompTxts));
         return compData;
     } catch (e) {
         logger.debug(`Failed to analyze competitor txt file ${fullUrl} - ${e}`);
