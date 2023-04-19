@@ -1,8 +1,9 @@
-import { logger, notificationsRepository, tournamentsRepository, yourCompetitorsRepository } from "../app";
+import { logger, notificationsRepository, tournamentsRepository, userSettingsRepository, yourCompetitorsRepository } from "../app";
 import { removeDiacritics } from "../core/utils";
 import { analyzeNextMatches } from "../matches/analyze";
 import { Match } from "../matches/match";
 import { MatchNotification, MatchSide } from "../notifications/match_notification";
+import { UserSettings } from "../user_settings/user_settings";
 import { fillCompetitorsData } from "../your_competitors/fill_data";
 import { YourCompetitor } from "../your_competitors/your_competitor";
 
@@ -13,7 +14,7 @@ import { YourCompetitor } from "../your_competitors/your_competitor";
 export async function runOTA() {
     logger.info('OTA started');
 
-    const your_competitors = await yourCompetitorsRepository.getYourCompetitors();
+    const your_competitors = await fillCompsMoment(await yourCompetitorsRepository.getYourCompetitors());
     const tournaments = await tournamentsRepository.getTournaments();
     logger.debug(`Your competitors to analyze: ${your_competitors.length}`);
 
@@ -36,6 +37,27 @@ export async function runOTA() {
     logger.info('OTA finished');
 }
 
+/**
+ * Fills notification moment based on user settings and removes competitors with disabled notifications.
+ * @param comps Your competitors to fill notification moment
+ * @returns Updated your competitors without disabled notifications
+ */
+async function fillCompsMoment(comps: YourCompetitor[]): Promise<YourCompetitor[]> {
+    const user_settings = await userSettingsRepository.getUserSettings();
+    return comps.map(comp => {
+        const settings = user_settings.find(setting => setting.user_id === comp.user_id);
+        if (settings === undefined) {
+            logger.warn(`User ${comp.user_id} not found in user settings`);
+            return null;
+        }
+
+        return {
+            ...comp,
+            moment: settings.match_notification_moment,
+        };
+    }).filter(comp => comp !== null && comp.moment !== null) as YourCompetitor[];
+}
+
 async function createNotifications(url: string, comps: YourCompetitor[]): Promise<MatchNotification[]> {
     // Fill competitor data (name, club, category)
     await fillCompetitorsData(url, comps);
@@ -52,12 +74,16 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
     for (var tatami = 0; tatami < matches.length; tatami++) {
         for (var match = 0; match < matches[tatami].length; match++) {
             for (const comp of comps) {
+                if (comp.moment! < match) {
+                    // Skip competitors with notification moment lower than current match
+                    continue;
+                }
                 var side: MatchSide | undefined = undefined;
                 if (isLeftCompetitor(matches[tatami][match], comp)) {
                     side = 'left';
-                } 
+                }
                 if (isRightCompetitor(matches[tatami][match], comp)) {
-                   side = side === undefined ? 'right' : 'both';
+                    side = side === undefined ? 'right' : 'both';
                 }
 
                 if (side !== undefined) {

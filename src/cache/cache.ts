@@ -1,6 +1,7 @@
-import { logger, notificationsRepository, tournamentsRepository, yourCompetitorsRepository } from "../app";
+import { logger, notificationsRepository, tournamentsRepository, userSettingsRepository, yourCompetitorsRepository } from "../app";
 import { startActiveScheduler, stopActiveScheduler } from "../scheduler/active_scheduler";
 import { startMainScheduler } from "../scheduler/main_scheduler";
+import { YourCompetitor } from "../your_competitors/your_competitor";
 
 export async function refreshCache(): Promise<void> {
     logger.info('Requested full cache refresh');
@@ -33,8 +34,16 @@ export async function refreshYourCompetitors(activeIds: string[] | undefined = u
     await yourCompetitorsRepository.refreshYourCompetitors(activeIds || await getActiveIds());
     logger.info('Your competitors cache refreshed');
 
+    // User settings depend on your competitors so we need to refresh them too
+    await refreshUserSettings();
+
     // Active scheduler depends on your competitors so we need to refresh its state
     await ensureSchedulers();
+}
+
+export async function refreshUserSettings(yourCompetitors: YourCompetitor[] | undefined = undefined): Promise<void> {
+    await userSettingsRepository.refreshUserSettings(yourCompetitors || await yourCompetitorsRepository.getYourCompetitors());
+    logger.info('User settings cache refreshed');
 }
 
 export async function refreshMatchNotifications(activeIds: string[] | undefined = undefined): Promise<void> {

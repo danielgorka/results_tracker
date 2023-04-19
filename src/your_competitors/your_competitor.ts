@@ -5,4 +5,5 @@ export class YourCompetitor {
     name?: string;
     club?: string;
     category?: string;
+    moment?: number;
 }

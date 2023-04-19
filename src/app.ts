@@ -8,12 +8,13 @@ import 'winston-daily-rotate-file';
 import { TournamentsRepository } from './tournaments/tournaments_repository';
 import { YourCompetitorsRepository } from './your_competitors/your_competitors_repository';
 import { NotificationsRepository } from './notifications/notifications_repository';
-import { refreshTournaments, refreshCache, refreshMatchNotifications, refreshYourCompetitors } from './cache/cache';
+import { refreshTournaments, refreshCache, refreshMatchNotifications, refreshYourCompetitors, refreshUserSettings } from './cache/cache';
 import { runOTA } from './ota/analyzer';
 import { runPTM } from './ptm/monitor';
 import { runATM } from './atm/monitor';
 import axios from 'axios';
 import { Agent } from 'https';
+import { UserSettingsRepository } from './user_settings/user_settings_repository';
 
 const startTime = new Date();
 
@@ -58,6 +59,7 @@ const port = process.env.PORT || 8000;
 
 export const tournamentsRepository = new TournamentsRepository(firestore);
 export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore);
+export const userSettingsRepository = new UserSettingsRepository(firestore);
 export const notificationsRepository = new NotificationsRepository(firestore);
 
 app.get('/', async (req: Request, res: Response) => {
@@ -75,6 +77,10 @@ app.post('/refresh/tournaments', async (req: Request, res: Response) => {
 app.post('/refresh/your_competitors', async (req: Request, res: Response) => {
     await refreshYourCompetitors();
     res.json({ message: 'Your competitors cache refreshed' });
+});
+app.post('/refresh/user_settings', async (req: Request, res: Response) => {
+    await refreshUserSettings();
+    res.json({ message: 'Use settings cache refreshed' });
 });
 app.post('/refresh/notifications', async (req: Request, res: Response) => {
     await refreshMatchNotifications();
