@@ -79,9 +79,15 @@ export class NotificationsRepository {
             await Promise.all(promises);
         }
 
-        // Save current notifications to cache (replace old cache to avoid keeping old notifications)
+        // Save current notifications to cache (remote old cache for this tournaments to avoid keeping old notifications)
+        const tournamentIds = new Set(notifications.map((notification) => notification.tournament_id));
+        const cacheNotifications = sentNotifications.filter((notification) => {
+            return !tournamentIds.has(notification.tournament_id);
+        });
+        cacheNotifications.push(...newNotifications);
+
         const notificationsData = {
-            notifications: notifications,
+            notifications: cacheNotifications,
             timestamp: new Date().toISOString(),
         };
         await fs.writeFile(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
