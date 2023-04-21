@@ -10,9 +10,9 @@ export class TournamentsRepository {
     public async refreshTournaments(): Promise<void> {
         const snapshot = await this.collection()
             .where('state', '==', 'public')
-            .orderBy('created_at')
-            .orderBy('end_date', 'desc')
             .orderBy('start_date', 'desc')
+            .orderBy('end_date', 'desc')
+            .orderBy('created_at')
             .get();
 
         const tournaments = { 
