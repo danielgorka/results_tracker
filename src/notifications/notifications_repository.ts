@@ -87,6 +87,9 @@ export class NotificationsRepository {
             }),
             ...newNotifications,
         ];
+        console.debug(`Sent notifications: ${sentNotifications.length}`);
+        console.debug(`New notifications: ${newNotifications.length}`);
+        console.debug(`Cache notifications: ${cacheNotifications.length}`);
 
         const notificationsData = {
             notifications: cacheNotifications,
