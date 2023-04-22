@@ -85,7 +85,7 @@ export class NotificationsRepository {
             ...sentNotifications.filter((notification) => {
                 return !tournamentIds.has(notification.tournament_id);
             }),
-            ...newNotifications,
+            ...notifications,
         ];
         logger.debug(`Sent notifications: ${sentNotifications.length}`);
         logger.debug(`New notifications: ${newNotifications.length}`);
