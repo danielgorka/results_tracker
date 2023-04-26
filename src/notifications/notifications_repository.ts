@@ -1,6 +1,6 @@
 import { logger } from "../app";
 import { MatchNotification } from "./match_notification";
-import * as fs from 'fs/promises';
+import * as fs from 'fs';
 import { FieldValue } from "firebase-admin/firestore";
 import { AdminNotification } from "./admin_notification";
 import { JsonHelper } from "../json_helper";
@@ -48,7 +48,7 @@ export class NotificationsRepository {
             timestamp: new Date().toISOString(),
         };
 
-        await fs.writeFile(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notifications, null, 2));
+        fs.writeFileSync(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notifications, null, 2));
     }
 
     public async createMatchNotifications(notifications: MatchNotification[]): Promise<void> {
@@ -95,7 +95,7 @@ export class NotificationsRepository {
             notifications: cacheNotifications,
             timestamp: new Date().toISOString(),
         };
-        await fs.writeFile(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
+        await fs.writeFileSync(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
 
         logger.info(`Sent ${newNotifications.length} notifications`);
     }
@@ -133,26 +133,26 @@ export class NotificationsRepository {
             timestamp: new Date(),
         };
 
-        await fs.writeFile(process.env.ADMIN_NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
+        await fs.writeFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
     }
 
     public async clearSentAdminNotifications() {
-        await fs.unlink(process.env.ADMIN_NOTIFICATIONS_FILE!);
+        await fs.unlinkSync(process.env.ADMIN_NOTIFICATIONS_FILE!);
     }
 
     private async getSentMatchNotifications(): Promise<MatchNotification[]> {
-        const notifications = await fs.readFile(process.env.NOTIFICATIONS_FILE!, 'utf-8');
+        const notifications = await fs.readFileSync(process.env.NOTIFICATIONS_FILE!, 'utf-8');
         return JSON.parse(notifications).notifications;
     }
 
     private async getSentAdminNotifications(): Promise<AdminNotification[]> {
         try {
-            await fs.access(process.env.ADMIN_NOTIFICATIONS_FILE!);
+            await fs.accessSync(process.env.ADMIN_NOTIFICATIONS_FILE!);
         } catch (err) {
             return [];
         }
 
-        const notifications = await fs.readFile(process.env.ADMIN_NOTIFICATIONS_FILE!, 'utf-8');
+        const notifications = await fs.readFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, 'utf-8');
         const notificationsData = JsonHelper.parse(notifications);
 
         // Remove old notifications
