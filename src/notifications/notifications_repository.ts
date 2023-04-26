@@ -54,11 +54,20 @@ export class NotificationsRepository {
     public async createMatchNotifications(notifications: MatchNotification[]): Promise<void> {
         const sentNotifications = await this.getSentMatchNotifications();
 
-        // Skip already sent notifications
+        // Skip already sent notifications (supports multiple similar notifications)
+        const oldNotifications = [...sentNotifications]
         const newNotifications = notifications.filter((notification) => {
-            return !sentNotifications.some((sentNotification) => {
-                return MatchNotification.isSimilar(notification, sentNotification);
+            const index = oldNotifications.findIndex((oldNotification) => {
+                return MatchNotification.isSimilar(notification, oldNotification);
             });
+
+            // Remove notification if it is still present
+            if (index >= 0) {
+                oldNotifications.splice(index, 1);
+            }
+
+            // Return true if notification is not present in old notifications (it is new)
+            return index < 0;
         });
 
         if (newNotifications.length > 0) {
