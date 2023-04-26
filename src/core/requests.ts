@@ -28,9 +28,10 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
         var finalUrl: string;
         var headers = {};
         if (useProxy) {
-            finalUrl = process.env.PROXY_URL!;
+            const proxyConfig = getProxyConfig();
+            finalUrl = proxyConfig.url;
             headers = {
-                'Proxy-Auth': process.env.PROXY_AUTH!,
+                'Proxy-Auth': proxyConfig.auth,
                 'Proxy-Url': url,
             };
         } else {
@@ -50,4 +51,21 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
 
         throw e;
     }
+}
+
+function getProxyConfig(): any {
+    const proxies = (process.env.CONFIG == null ? require('../../config.json').proxies : JSON.parse(process.env.CONFIG!).proxies) as any[];
+
+    const ratioSum = proxies.reduce((sum, proxy) => sum + proxy.usage_ratio, 0);
+    const random = Math.random() * ratioSum;
+
+    var sum = 0;
+    for (const proxy of proxies) {
+        sum += proxy.usage_ratio;
+        if (random < sum) {
+            return proxy;
+        }
+    }
+
+    throw new Error('No proxy found');
 }
