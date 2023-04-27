@@ -1,7 +1,6 @@
 import { load } from "cheerio";
 import { logger } from "../app";
 import { Match } from "./match";
-import axios from 'axios';
 import { get } from "../core/requests";
 
 export async function analyzeNextMatches(url: string): Promise<Match[][] | undefined> {

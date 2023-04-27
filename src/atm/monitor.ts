@@ -11,8 +11,8 @@ import { Tournament } from "../tournaments/tournament";
 /// Decision about analysis per each tournament is based on current time.
 ///
 /// Rules depending on tournament end_date:
-/// - +90 days: every 7 days (day of week is based on end_date) (at 00:00)
-/// - 7 days - 90 days: every 1 day (at 00:00)
+/// - +21 days: every 7 days (day of week is based on end_date) (at 00:00)
+/// - 7 days - 21 days: every 1 day (at 00:00)
 /// - 1 day - 7 days: every 1 hour
 export async function runATM(force: boolean = false): Promise<void> {
     logger.info('ATM started');
@@ -39,7 +39,7 @@ export async function runATM(force: boolean = false): Promise<void> {
         }
 
         const days = (end_date.getTime() - now.getTime()) / (1000 * 3600 * 24);
-        if (days > 90) {
+        if (days > 21) {
             return now.getDay() === end_date.getDay() && now.getHours() === 0;
         }
         if (days > 7) {
