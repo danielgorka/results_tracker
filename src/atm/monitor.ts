@@ -38,7 +38,7 @@ export async function runATM(force: boolean = false): Promise<void> {
             return true;
         }
 
-        const days = (end_date.getTime() - now.getTime()) / (1000 * 3600 * 24);
+        const days = (now.getTime() - end_date.getTime()) / (1000 * 3600 * 24);
         if (days > 21) {
             return now.getDay() === end_date.getDay() && now.getHours() === 0;
         }
