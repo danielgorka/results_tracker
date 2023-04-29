@@ -38,6 +38,7 @@ export const logger = winston.createLogger({
 
 process.on('uncaughtException', function (err) {
     logger.error('Uncaught exception: ' + err);
+    logger.error(err.stack);
 });
 
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT == null
