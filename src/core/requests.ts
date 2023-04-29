@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 
 /**
  * Proxy rule
@@ -45,6 +45,10 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
             },
         });
     } catch (e) {
+        if (e instanceof AxiosError && e.response?.status === 404) {
+            throw e;
+        }
+
         if (proxyRule === 'retry') {
             return get(url, 'force');
         }
