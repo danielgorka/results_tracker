@@ -14,6 +14,8 @@ export class MatchNotification {
     r_name!: string;
     r_club!: string;
     side!: MatchSide;
+    timestamp!: Date;
+
 
     /**
      * Compares two notifications if they are similar

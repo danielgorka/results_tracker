@@ -7,7 +7,7 @@ import { JsonHelper } from "../json_helper";
 import axios from "axios";
 
 const NOTIFICATIONS_COLLECTION = 'tournament_notifications';
-const ADMIN_NOTIFICATIONS_TIMEOUT = 1000 * 60 * 60 * 24; // 24 hours
+const NOTIFICATIONS_CACHE_TTL = 1000 * 60 * 60 * 24; // 24 hours
 
 export class NotificationsRepository {
     constructor(private readonly db: FirebaseFirestore.Firestore) { }
@@ -52,7 +52,7 @@ export class NotificationsRepository {
     }
 
     public async createMatchNotifications(notifications: MatchNotification[]): Promise<void> {
-        const sentNotifications = await this.getSentMatchNotifications();
+        const sentNotifications = this.getSentMatchNotifications();
 
         // Skip already sent notifications (supports multiple similar notifications)
         const oldNotifications = [...sentNotifications]
@@ -102,7 +102,7 @@ export class NotificationsRepository {
             await Promise.all(promises);
         }
 
-        // Save current notifications to cache (remote old cache for this tournaments to avoid keeping old notifications)
+        // Save current notifications to cache (remove old cache for this tournaments to avoid keeping old notifications)
         const tournamentIds = new Set(notifications.map((notification) => notification.tournament_id));
         const cacheNotifications = [
             ...sentNotifications.filter((notification) => {
@@ -110,6 +110,7 @@ export class NotificationsRepository {
             }),
             ...notifications,
         ];
+
         logger.debug(`Already sent notifications: ${sentNotifications.length}`);
         logger.debug(`New sent notifications: ${newNotifications.length}`);
         logger.debug(`Cache notifications: ${cacheNotifications.length}`);
@@ -124,7 +125,7 @@ export class NotificationsRepository {
     }
 
     public async sendAdminNotification(notification: AdminNotification) {
-        const sentNotifications = await this.getSentAdminNotifications();
+        const sentNotifications = this.getSentAdminNotifications();
 
         if (sentNotifications.some((sentNotification) =>
             sentNotification.title === notification.title
@@ -156,26 +157,36 @@ export class NotificationsRepository {
             timestamp: new Date(),
         };
 
-        await fs.writeFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
+        fs.writeFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
     }
 
-    public async clearSentAdminNotifications() {
-        await fs.unlinkSync(process.env.ADMIN_NOTIFICATIONS_FILE!);
+    public clearSentAdminNotifications() {
+        fs.unlinkSync(process.env.ADMIN_NOTIFICATIONS_FILE!);
     }
 
-    private async getSentMatchNotifications(): Promise<MatchNotification[]> {
-        const notifications = await fs.readFileSync(process.env.NOTIFICATIONS_FILE!, 'utf-8');
-        return JSON.parse(notifications).notifications;
+    private getSentMatchNotifications(): MatchNotification[] {
+        const notifications = fs.readFileSync(process.env.NOTIFICATIONS_FILE!, 'utf-8');
+        const notificationsData = JsonHelper.parse(notifications);
+
+        // Remove old notifications
+        const now = new Date().getTime();
+        const notificationsList = notificationsData.notifications as MatchNotification[];
+        const filteredNotifications = notificationsList.filter((notification) => {
+            const notificationTime = notification.timestamp.getTime();
+            return now - notificationTime < NOTIFICATIONS_CACHE_TTL;
+        });
+
+        return filteredNotifications;
     }
 
-    private async getSentAdminNotifications(): Promise<AdminNotification[]> {
+    private getSentAdminNotifications(): AdminNotification[] {
         try {
-            await fs.accessSync(process.env.ADMIN_NOTIFICATIONS_FILE!);
+            fs.accessSync(process.env.ADMIN_NOTIFICATIONS_FILE!);
         } catch (err) {
             return [];
         }
 
-        const notifications = await fs.readFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, 'utf-8');
+        const notifications = fs.readFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, 'utf-8');
         const notificationsData = JsonHelper.parse(notifications);
 
         // Remove old notifications
@@ -183,7 +194,7 @@ export class NotificationsRepository {
         const notificationsList = notificationsData.notifications as AdminNotification[];
         const filteredNotifications = notificationsList.filter((notification) => {
             const notificationTime = notification.timestamp.getTime();
-            return now - notificationTime < ADMIN_NOTIFICATIONS_TIMEOUT;
+            return now - notificationTime < NOTIFICATIONS_CACHE_TTL;
         });
 
         return filteredNotifications;

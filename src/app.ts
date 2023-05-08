@@ -88,8 +88,8 @@ app.post('/refresh/notifications', async (req: Request, res: Response) => {
     res.json({ message: 'Notifications cache refreshed' });
 });
 
-app.post('/clear/admin_nots', async (req: Request, res: Response) => {
-    await notificationsRepository.clearSentAdminNotifications();
+app.post('/clear/admin_nots', (req: Request, res: Response) => {
+     notificationsRepository.clearSentAdminNotifications();
     res.json({ message: 'Sent admin notifications cleared' });
 });
 

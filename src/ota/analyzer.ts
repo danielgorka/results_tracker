@@ -99,6 +99,7 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
                         r_name: matches[tatami][match].r_name,
                         r_club: matches[tatami][match].r_club,
                         side: side,
+                        timestamp: new Date(),
                     });
                 }
             }
