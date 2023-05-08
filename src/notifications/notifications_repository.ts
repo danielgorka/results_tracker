@@ -71,16 +71,30 @@ export class NotificationsRepository {
         });
 
         if (newNotifications.length > 0) {
+            // Group notifications by document id (to avoid multiple writes to the same document)
+            const groupedNotifications = newNotifications.reduce((acc, notification) => {
+                const key = this._doc(notification.user_id, notification.tournament_id);
+                if (!acc[key]) {
+                    acc[key] = [];
+                }
+                acc[key].push(notification);
+                return acc;
+            }, {} as Record<string, MatchNotification[]>);
+
             // Save notifications
-            const promises = newNotifications.map((notification) => {
-                const doc = this.collection().doc(this._doc(notification.user_id, notification.tournament_id));
-                const id = Math.random().toString(36).substring(2, 15);
+            const promises = Object.keys(groupedNotifications).map((key) => {
+                const doc = this.collection().doc(key);
+                const notifications = groupedNotifications[key];
+                const notificationsData = notifications.reduce((acc, notification) => {
+                    const id = Math.random().toString(36).substring(2, 15);
+                    const data = MatchNotification.toData(notification);
+                    return { ...acc, [id]: data };
+                }, {});
+
                 return doc.set({
-                    notifications: {
-                        [id]: MatchNotification.toData(notification),
-                    },
-                    user_id: notification.user_id,
-                    tournament_id: notification.tournament_id,
+                    notifications: notificationsData,
+                    user_id: notifications[0].user_id,
+                    tournament_id: notifications[0].tournament_id,
                     updated_at: FieldValue.serverTimestamp(),
                 }, { merge: true });
             });
@@ -96,15 +110,15 @@ export class NotificationsRepository {
             }),
             ...notifications,
         ];
-        logger.debug(`Sent notifications: ${sentNotifications.length}`);
-        logger.debug(`New notifications: ${newNotifications.length}`);
+        logger.debug(`Already sent notifications: ${sentNotifications.length}`);
+        logger.debug(`New sent notifications: ${newNotifications.length}`);
         logger.debug(`Cache notifications: ${cacheNotifications.length}`);
 
         const notificationsData = {
             notifications: cacheNotifications,
             timestamp: new Date().toISOString(),
         };
-        await fs.writeFileSync(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
+        fs.writeFileSync(process.env.NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
 
         logger.info(`Sent ${newNotifications.length} notifications`);
     }
