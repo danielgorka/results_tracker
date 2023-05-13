@@ -172,7 +172,7 @@ export class NotificationsRepository {
         const now = new Date().getTime();
         const notificationsList = notificationsData.notifications as MatchNotification[];
         const filteredNotifications = notificationsList.filter((notification) => {
-            const notificationTime = notification.timestamp.getTime();
+            const notificationTime = notification.timestamp?.getTime() ?? new Date().getTime();// TODO: temp fix
             return now - notificationTime < NOTIFICATIONS_CACHE_TTL;
         });
 

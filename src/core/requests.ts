@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from 'axios';
+import { logger } from '../app';
 
 /**
  * Proxy rule
@@ -34,6 +35,8 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
                 'Proxy-Auth': proxyConfig.auth,
                 'Proxy-Url': url,
             };
+
+            logger.debug(`Using proxy ${finalUrl}`);
         } else {
             finalUrl = url;
         }
