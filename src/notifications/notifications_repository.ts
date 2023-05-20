@@ -36,6 +36,7 @@ export class NotificationsRepository {
                         ...not.data,
                         user_id: data.user_id,
                         tournament_id: data.tournament_id,
+                        timestamp: not.created_at.toDate(),
                     });
                 });
             });
@@ -154,7 +155,7 @@ export class NotificationsRepository {
         sentNotifications.push(notification);
         const notificationsData = {
             notifications: sentNotifications,
-            timestamp: new Date(),
+            timestamp: new Date().toISOString(),
         };
 
         fs.writeFileSync(process.env.ADMIN_NOTIFICATIONS_FILE!, JSON.stringify(notificationsData, null, 2));
@@ -168,11 +169,11 @@ export class NotificationsRepository {
         const notifications = fs.readFileSync(process.env.NOTIFICATIONS_FILE!, 'utf-8');
         const notificationsData = JsonHelper.parse(notifications);
 
-        // Remove old notifications
+        // Remove very old notifications (TTL)
         const now = new Date().getTime();
         const notificationsList = notificationsData.notifications as MatchNotification[];
         const filteredNotifications = notificationsList.filter((notification) => {
-            const notificationTime = notification.timestamp?.getTime() ?? new Date().getTime();// TODO: temp fix
+            const notificationTime = notification.timestamp!.getTime();
             return now - notificationTime < NOTIFICATIONS_CACHE_TTL;
         });
 
