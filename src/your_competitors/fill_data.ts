@@ -30,6 +30,14 @@ class CompData {
  */
 export async function fillCompetitorsData(url: string, comps: YourCompetitor[]): Promise<void> {
     for (const comp of comps) {
+        // Set name, club from competitor ID (fallback ID)
+        if (comp.competitor_id.startsWith('_')) {
+            const parts = comp.competitor_id.split('_');
+            comp.name = parts[1];
+            comp.club = parts[2];
+            continue;
+        }
+
         const compData = await getCompData(url, comp.competitor_id);
         if (compData === undefined) {
             continue;

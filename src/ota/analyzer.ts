@@ -110,11 +110,11 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
 }
 
 function isLeftCompetitor(match: Match, comp: YourCompetitor): boolean {
-    return strCompare(match.l_name, comp.name!) && strCompare(match.l_club, comp.club!) && strCompare(match.category, comp.category!);
+    return strCompare(match.l_name, comp.name!) && strCompare(match.l_club, comp.club!) && (comp.category == undefined || strCompare(match.category, comp.category!));
 }
 
 function isRightCompetitor(match: Match, comp: YourCompetitor): boolean {
-    return strCompare(match.r_name, comp.name!) && strCompare(match.r_club, comp.club!) && strCompare(match.category, comp.category!);
+    return strCompare(match.r_name, comp.name!) && strCompare(match.r_club, comp.club!) && (comp.category == undefined || strCompare(match.category, comp.category!));
 }
 
 // Compares two strings
