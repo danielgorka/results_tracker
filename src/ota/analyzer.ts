@@ -123,6 +123,10 @@ function isRightCompetitor(match: Match, comp: YourCompetitor): boolean {
 // - Special characters converted to ASCII
 // - Words order insensitive
 function strCompare(a: string, b: string): boolean {
+    if (a == undefined || b == undefined) {
+        return false;
+    }
+    
     const a1 = removeDiacritics(a.toLowerCase().replace(/\s/g, ''));
     const b1 = removeDiacritics(b.toLowerCase().replace(/\s/g, ''));
 
