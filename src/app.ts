@@ -122,6 +122,8 @@ app.use(errorHandler);
 app.listen(port, () => {
     logger.info(`⚡️[server]: Server is running at http://localhost:${port}`);
 
-    // Initialize cache and start main scheduler
-    refreshCache();
+    setTimeout(() => {
+        // Initialize cache and start main scheduler
+        refreshCache();
+    }, 5000);
 });
