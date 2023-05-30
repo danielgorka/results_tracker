@@ -62,15 +62,11 @@ async function getCompData(url: string, compId: string): Promise<CompData | unde
     const cachedComp = cachedCompTxts[fullUrl];
     if (cachedComp !== undefined) {
         if (Date.now() - cachedComp.timestamp < cacheTtl) {
-            logger.debug(`Using cached data for competitor txt file ${fullUrl}`);
             return cachedComp;
-        } else {
-            logger.debug(`Cached data for competitor txt file ${fullUrl} expired`);
         }
     }
 
     try {
-        logger.debug(`Getting data for competitor txt file ${fullUrl}`);
         const response = await get(fullUrl, 'retry');
         const text = await response.data;
         const lines = text.split('\n');
