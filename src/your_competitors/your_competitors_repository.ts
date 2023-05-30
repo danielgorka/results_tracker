@@ -1,5 +1,5 @@
 import { logger } from "../app";
-import * as fs from 'fs/promises';
+import * as fs from 'fs';
 import { YourCompetitor } from "./your_competitor";
 
 export const YOUR_COMPETITORS_COLLECTION = 'your_competitors';
@@ -35,11 +35,11 @@ export class YourCompetitorsRepository {
             timestamp: new Date().toISOString(),
         };
 
-        await fs.writeFile(process.env.YOUR_COMPETITORS_FILE!, JSON.stringify(yourCompetitors, null, 2));
+        fs.writeFileSync(process.env.YOUR_COMPETITORS_FILE!, JSON.stringify(yourCompetitors, null, 2));
     }
 
     public async getYourCompetitors(): Promise<YourCompetitor[]> {
-        const yourCompetitors = await fs.readFile(process.env.YOUR_COMPETITORS_FILE!, 'utf-8');
+        const yourCompetitors = fs.readFileSync(process.env.YOUR_COMPETITORS_FILE!, 'utf-8');
         return JSON.parse(yourCompetitors).your_competitors;
     }
 
