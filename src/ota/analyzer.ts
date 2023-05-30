@@ -3,6 +3,7 @@ import { removeDiacritics } from "../core/utils";
 import { analyzeNextMatches } from "../matches/analyze";
 import { Match } from "../matches/match";
 import { MatchNotification, MatchSide } from "../notifications/match_notification";
+import { Tournament, TournamentVideo } from "../tournaments/tournament";
 import { UserSettings } from "../user_settings/user_settings";
 import { fillCompetitorsData } from "../your_competitors/fill_data";
 import { YourCompetitor } from "../your_competitors/your_competitor";
@@ -25,7 +26,7 @@ export async function runOTA() {
             return;
         }
 
-        const notifications = await createNotifications(tournament.html_results!.url, comps);
+        const notifications = await createNotifications(tournament, comps);
 
         logger.debug(`OTA found ${notifications.length} possible notifications for tournament ${tournament.id}`);
 
@@ -58,7 +59,9 @@ async function fillCompsMoment(comps: YourCompetitor[]): Promise<YourCompetitor[
     }).filter(comp => comp !== null && comp.moment !== null) as YourCompetitor[];
 }
 
-async function createNotifications(url: string, comps: YourCompetitor[]): Promise<MatchNotification[]> {
+async function createNotifications(tournament: Tournament, comps: YourCompetitor[]): Promise<MatchNotification[]> {
+    const url = tournament.html_results!.url;
+
     // Fill competitor data (name, club, category)
     await fillCompetitorsData(url, comps);
 
@@ -99,6 +102,7 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
                         r_name: matches[tatami][match].r_name,
                         r_club: matches[tatami][match].r_club,
                         side: side,
+                        live_id: getLiveId(tournament, tatami + 1),
                         timestamp: new Date(),
                     });
                 }
@@ -107,6 +111,33 @@ async function createNotifications(url: string, comps: YourCompetitor[]): Promis
     }
 
     return notifications;
+}
+
+function getLiveId(tournament: Tournament, tatami: number): string | undefined {
+    if (tournament.videos === undefined) {
+        return undefined;
+    }
+
+    const live = tournament.videos!.items.filter(item => {
+        if ((item as any).section == undefined) {
+            const video = item as TournamentVideo;
+            return video.tatami === tatami;
+        }
+
+        return false;
+    });
+
+    if (live.length === 0) {
+        return undefined;
+    }
+
+    if (live.length == 1) {
+        logger.debug(`Live stream found for tournament ${tournament.id} and tatami ${tatami}`);
+        return (live[0] as TournamentVideo).id;
+    }
+
+    // TODO: Handle multiple live streams (get cached live details for tournament)
+    return undefined;
 }
 
 function isLeftCompetitor(match: Match, comp: YourCompetitor): boolean {
@@ -126,7 +157,7 @@ function strCompare(a: string, b: string): boolean {
     if (a == undefined || b == undefined) {
         return false;
     }
-    
+
     const a1 = removeDiacritics(a.toLowerCase().replace(/\s/g, ''));
     const b1 = removeDiacritics(b.toLowerCase().replace(/\s/g, ''));
 

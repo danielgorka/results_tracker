@@ -14,6 +14,7 @@ export class MatchNotification {
     r_name!: string;
     r_club!: string;
     side!: MatchSide;
+    live_id?: string;
     timestamp!: Date;
 
 
@@ -49,6 +50,7 @@ export class MatchNotification {
                 r_name: notification.r_name,
                 r_club: notification.r_club,
                 side: notification.side,
+                live_id: notification.live_id,
             },
             updated_at: Timestamp.now(),
             created_at: Timestamp.now(),
