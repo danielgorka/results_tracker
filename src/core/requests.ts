@@ -36,7 +36,7 @@ export async function get(url: string, proxyRule: ProxyRule): Promise<AxiosRespo
                 'Proxy-Url': url,
             };
 
-            logger.debug(`Using proxy ${finalUrl}`);
+            logger.debug(`Using proxy ${finalUrl} for URL ${url}`);
         } else {
             finalUrl = url;
         }
