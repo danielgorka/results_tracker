@@ -1,6 +1,6 @@
 import { logger } from "../app";
 import { runOTA } from "../ota/analyzer";
-import { setIntervalAsync, clearIntervalAsync } from 'set-interval-async/fixed';
+import { setIntervalAsync, clearIntervalAsync } from 'set-interval-async/dynamic';
 import { SetIntervalAsyncTimer } from "set-interval-async";
 
 var interval: SetIntervalAsyncTimer<any> | undefined;
