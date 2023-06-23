@@ -64,6 +64,9 @@ export const yourCompetitorsRepository = new YourCompetitorsRepository(firestore
 export const userSettingsRepository = new UserSettingsRepository(firestore);
 export const notificationsRepository = new NotificationsRepository(firestore);
 
+// Add JSON body parser
+app.use(express.json());
+
 app.get('/', async (req: Request, res: Response) => {
     res.json({ message: 'Server started at: ' + startTime.toISOString() });
 });
@@ -77,11 +80,14 @@ app.post('/refresh/tournaments', async (req: Request, res: Response) => {
     res.json({ message: 'Tournaments cache refreshed' });
 });
 app.post('/refresh/your_competitors', async (req: Request, res: Response) => {
-    await refreshYourCompetitors();
+    const id = req.body.id as string | undefined;
+    await refreshYourCompetitors(undefined, id);
     res.json({ message: 'Your competitors cache refreshed' });
 });
 app.post('/refresh/user_settings', async (req: Request, res: Response) => {
-    await refreshUserSettings();
+    throw new Error('Not implemented');
+    const id = req.body.id as string | undefined;
+    await refreshUserSettings(undefined, id);
     res.json({ message: 'Use settings cache refreshed' });
 });
 app.post('/refresh/notifications', async (req: Request, res: Response) => {

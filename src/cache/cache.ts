@@ -30,8 +30,14 @@ export async function refreshTournaments(): Promise<void> {
     await refreshMatchNotifications(activeIds);
 }
 
-export async function refreshYourCompetitors(activeIds: string[] | undefined = undefined): Promise<void> {
-    await yourCompetitorsRepository.refreshYourCompetitors(activeIds || await getActiveIds());
+export async function refreshYourCompetitors(activeIds: string[] | undefined = undefined, docId: string | undefined = undefined): Promise<void> {
+    let ids = activeIds;
+    if (ids === undefined && docId === undefined) {
+        // Set missing active ids if not set
+        ids = await getActiveIds();
+    }
+
+    await yourCompetitorsRepository.refreshYourCompetitors(ids, docId);
     logger.info('Your competitors cache refreshed');
 
     // User settings depend on your competitors so we need to refresh them too
@@ -41,8 +47,14 @@ export async function refreshYourCompetitors(activeIds: string[] | undefined = u
     await ensureSchedulers();
 }
 
-export async function refreshUserSettings(yourCompetitors: YourCompetitor[] | undefined = undefined): Promise<void> {
-    await userSettingsRepository.refreshUserSettings(yourCompetitors || await yourCompetitorsRepository.getYourCompetitors());
+export async function refreshUserSettings(yourCompetitors: YourCompetitor[] | undefined = undefined, userId: string | undefined = undefined): Promise<void> {
+    let comps = yourCompetitors;
+    if (comps === undefined && userId === undefined) {
+        // Set missing your competitors if not set
+        comps = await yourCompetitorsRepository.getYourCompetitors();
+    }
+
+    await userSettingsRepository.refreshUserSettings(comps, userId);
     logger.info('User settings cache refreshed');
 }
 

@@ -11,9 +11,15 @@ export class UserSettingsRepository {
     /**
      * Refreshes user settings for all users in ongoing tournaments.
      * @param yourCompetitors All your competitors for ongoing tournaments. Used to get all user ids to get settings for.
+     * @param userId Optional user id to refresh settings for. Use instead of yourCompetitors to refresh only one user keeping others untouched.
      */
-    public async refreshUserSettings(yourCompetitors: YourCompetitor[]): Promise<void> {
-        const userIds = [...new Set(yourCompetitors.map((comp) => comp.user_id))];
+    public async refreshUserSettings(yourCompetitors: YourCompetitor[] | undefined, userId: string | undefined = undefined): Promise<void> {
+        let userIds: string[];
+        if (userId === undefined) {
+            userIds = [...new Set(yourCompetitors!.map((comp) => comp.user_id))];
+        } else {
+            userIds = [userId];
+        }
 
         if (userIds.length == 0) {
             logger.debug('No users to get settings for');
@@ -33,7 +39,13 @@ export class UserSettingsRepository {
 
         const results = await Promise.all(promises);
 
-        const list = results.filter((result) => result != null) as UserSettings[];
+        let list = results.filter((result) => result != null) as UserSettings[];
+
+        if (userId !== undefined) {
+            // Refresh only one user - add old settings for other users
+            const oldSettings = await this.getUserSettings();
+            list.push(...oldSettings.filter((setting) => setting.user_id !== userId));
+        }
 
         const userSettings = {
             user_settings: list,
