@@ -15,6 +15,7 @@ import { runATM } from './atm/monitor';
 import axios from 'axios';
 import { Agent } from 'https';
 import { UserSettingsRepository } from './user_settings/user_settings_repository';
+import 'express-async-errors';
 
 const startTime = new Date();
 
@@ -114,7 +115,11 @@ app.use(function (req, res, next) {
 
 // Catch Express errors
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-    logger.error(err);
+    logger.error('Caught exception: ' + err);
+    logger.error(err.stack);
+    if (res.headersSent) {
+        return next(err)
+    }
     res.status(500).json({ message: 'Internal server error' });
 };
 app.use(errorHandler);
