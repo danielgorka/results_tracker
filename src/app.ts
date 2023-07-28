@@ -85,7 +85,6 @@ app.post('/refresh/your_competitors', async (req: Request, res: Response) => {
     res.json({ message: 'Your competitors cache refreshed' });
 });
 app.post('/refresh/user_settings', async (req: Request, res: Response) => {
-    throw new Error('Not implemented');
     const id = req.body.id as string | undefined;
     await refreshUserSettings(undefined, id);
     res.json({ message: 'Use settings cache refreshed' });
