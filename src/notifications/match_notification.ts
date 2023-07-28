@@ -40,7 +40,9 @@ export class MatchNotification {
     static toData(notification: MatchNotification): DocumentData {
         return {
             read: false,
-            type: 'upcoming_match',
+            type: notification.live_id == undefined
+                ? 'upcoming_match'
+                : 'upcoming_match_live',
             data: {
                 competitor_id: notification.competitor_id,
                 tatami: notification.tatami,
