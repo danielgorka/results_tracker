@@ -13,11 +13,14 @@ export class UserSettingsRepository {
      * @param yourCompetitors All your competitors for ongoing tournaments. Used to get all user ids to get settings for.
      * @param userId Optional user id to refresh settings for. Use instead of yourCompetitors to refresh only one user keeping others untouched.
      */
-    public async refreshUserSettings(yourCompetitors: YourCompetitor[] | undefined, userId: string | undefined = undefined): Promise<void> {
-        let userIds: string[];
-        if (userId === undefined) {
-            userIds = [...new Set(yourCompetitors!.map((comp) => comp.user_id))];
-        } else {
+    public async refreshUserSettings(yourCompetitors: YourCompetitor[], userId: string | undefined = undefined): Promise<void> {
+        let userIds = [...new Set(yourCompetitors!.map((comp) => comp.user_id))];
+        if (userId !== undefined) {
+            if (!userIds.includes(userId)) {
+                logger.debug(`User settings doc is for user without active your competitors ${userId}`);
+                return;
+            }
+
             userIds = [userId];
         }
 

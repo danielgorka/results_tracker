@@ -31,29 +31,20 @@ export async function refreshTournaments(): Promise<void> {
 }
 
 export async function refreshYourCompetitors(activeIds: string[] | undefined = undefined, docId: string | undefined = undefined): Promise<void> {
-    let ids = activeIds;
-    if (ids === undefined && docId === undefined) {
-        // Set missing active ids if not set
-        ids = await getActiveIds();
-    }
-
+    let ids = activeIds || await getActiveIds();
     await yourCompetitorsRepository.refreshYourCompetitors(ids, docId);
     logger.info('Your competitors cache refreshed');
 
     // User settings depend on your competitors so we need to refresh them too
-    await refreshUserSettings();
+    const userId = docId?.split('_')[0]
+    await refreshUserSettings(undefined, userId);
 
     // Active scheduler depends on your competitors so we need to refresh its state
     await ensureSchedulers();
 }
 
 export async function refreshUserSettings(yourCompetitors: YourCompetitor[] | undefined = undefined, userId: string | undefined = undefined): Promise<void> {
-    let comps = yourCompetitors;
-    if (comps === undefined && userId === undefined) {
-        // Set missing your competitors if not set
-        comps = await yourCompetitorsRepository.getYourCompetitors();
-    }
-
+    let comps = yourCompetitors || await yourCompetitorsRepository.getYourCompetitors();
     await userSettingsRepository.refreshUserSettings(comps, userId);
     logger.info('User settings cache refreshed');
 }

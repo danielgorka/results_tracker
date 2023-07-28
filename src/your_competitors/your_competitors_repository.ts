@@ -7,7 +7,7 @@ export const YOUR_COMPETITORS_COLLECTION = 'your_competitors';
 export class YourCompetitorsRepository {
     constructor(private readonly db: FirebaseFirestore.Firestore) { }
 
-    public async refreshYourCompetitors(tournamentIds: string[] | undefined, id: string | undefined = undefined): Promise<void> {
+    public async refreshYourCompetitors(tournamentIds: string[], id: string | undefined = undefined): Promise<void> {
         var list: YourCompetitor[] = [];
 
         if (id !== undefined) {
@@ -15,6 +15,12 @@ export class YourCompetitorsRepository {
             const parts = id.split('_');
             const userId = parts[0];
             const tournamentId = parts[1];
+
+            // Skip if this tournament is not in the list
+            if (!tournamentIds.includes(tournamentId)) {
+                logger.debug(`Your competitors doc is for not active tournament ${tournamentId}`);
+                return;
+            }
 
             // Remove old competitors from this document
             list = await this.getYourCompetitors();
