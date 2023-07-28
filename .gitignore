@@ -11,7 +11,7 @@ logs/
 .env
 
 # Firebase service account
-firebase-service-account.json
+firebase-service-account*.json
 
 # Config
 config.json

@@ -1,4 +1,3 @@
-
 import os
 import datetime
 import ftplib
@@ -38,12 +37,14 @@ if type == "passenger":
     # Copy logs using SSH
     ssh_client = paramiko.SSHClient()
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh_client.connect(ssh_hostname, username=ssh_username, password=ssh_password)
+    ssh_client.connect(
+        ssh_hostname, username=ssh_username, password=ssh_password
+    )
     channel = ssh_client.invoke_shell()
 
     def run_command(command):
         print(f"Running command: {command}")
-        channel.send(command + '\n')
+        channel.send(command + "\n")
 
     ssh_file_path = os.getenv("FTP_PASSENGER_PATH")
     run_command(f"cp {ssh_file_path} passenger.log")
@@ -57,4 +58,3 @@ ftp_client.retrbinary(f"RETR {file_path}", open(dest_path, "wb").write)
 
 # Close the FTP connection
 ftp_client.quit()
-

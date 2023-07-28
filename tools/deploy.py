@@ -30,18 +30,20 @@ ssh_client.connect(hostname, username=username, password=password)
 
 channel = ssh_client.invoke_shell()
 
+
 def run_command(command):
     print(f"Running command: {command}")
     channel.send(command + '\n')
 
+
 run_command("cd results_tracker")
 run_command("pwd")
 
-run_command(f"git pull")
-run_command(f"git status")
-run_command(f"npm install")
-run_command(f"npm run build")
-run_command(f"nodecli restart")
+run_command("git pull")
+run_command("git status")
+run_command("npm install")
+run_command("npm run build")
+run_command("nodecli restart")
 
 run_command("exit")
 
