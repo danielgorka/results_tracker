@@ -95,7 +95,7 @@ async function createNotifications(tournament: Tournament, comps: YourCompetitor
                         tournament_id: comp.tournament_id,
                         competitor_id: comp.competitor_id,
                         tatami: tatami + 1,
-                        match: match + 1,
+                        match_order: match,
                         category: matches[tatami][match].category,
                         l_name: matches[tatami][match].l_name,
                         l_club: matches[tatami][match].l_club,

@@ -7,7 +7,7 @@ export class MatchNotification {
     tournament_id!: string;
     competitor_id!: string;
     tatami!: number;
-    match!: number;
+    match_order!: number;
     category!: string;
     l_name!: string;
     l_club!: string;
@@ -46,7 +46,8 @@ export class MatchNotification {
             data: {
                 competitor_id: notification.competitor_id,
                 tatami: notification.tatami,
-                match: notification.match,
+                match: notification.match_order + 1, // backwards compatibility (<= 3.1.5)
+                match_order: notification.match_order,
                 l_name: notification.l_name,
                 l_club: notification.l_club,
                 r_name: notification.r_name,
